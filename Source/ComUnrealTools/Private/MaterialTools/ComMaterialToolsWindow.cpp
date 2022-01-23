@@ -4,6 +4,7 @@
 #include "CMTNodeSearcher/CMTNodeSearcher.h"
 #include "CMTStatList/CMTStatList.h"
 #include "CMTTextureFind/CMTTextureFind.h"
+#include "CMTParameterDump/CMTParameterDump.h"
 #include "ComUnrealTools.h"
 
 #include "EditorStyleSet.h"
@@ -22,9 +23,10 @@
 /* Local constants
  *****************************************************************************/
 
-static const FName SearcherTabId("CMTNodeSearcher");
-static const FName StatTabId("CMTStatList");
-static const FName TextureFindTabId("CMTTextureFind");
+static const FName CMTNodeSearcherTabId("CMTNodeSearcher");
+static const FName CMTParameterDumpTabId("CMTParameterDump");
+static const FName CMTTextureFindTabId("CMTTextureFind");
+static const FName CMTStatListTabId("CMTStatList");
 
 
 /* SComMaterialToolsWindow interface
@@ -36,14 +38,17 @@ void SComMaterialToolsWindow::Construct(const FArguments& InArgs, const TSharedR
 	TabManager = FGlobalTabmanager::Get()->NewTabManager(ConstructUnderMajorTab);
 	
 	// node searcher window
-	TabManager->RegisterTabSpawner(SearcherTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, SearcherTabId))
+	TabManager->RegisterTabSpawner(CMTNodeSearcherTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTNodeSearcherTabId))
 		.SetDisplayName(LOCTEXT("CMTNodeSearcherTabTitle", "Node Search"));
-		
-	TabManager->RegisterTabSpawner(StatTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, StatTabId))
-		.SetDisplayName(LOCTEXT("CMTStatListTabTitle", "Stat List"));
 	
-	TabManager->RegisterTabSpawner(TextureFindTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, TextureFindTabId))
+	TabManager->RegisterTabSpawner(CMTParameterDumpTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTParameterDumpTabId))
+		.SetDisplayName(LOCTEXT("CMTParameterDumpTabTitle", "Parameter Dump"));
+	
+	TabManager->RegisterTabSpawner(CMTTextureFindTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTTextureFindTabId))
 		.SetDisplayName(LOCTEXT("CMTTextureFindTabTitle", "Texture Find"));
+	
+	TabManager->RegisterTabSpawner(CMTStatListTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTStatListTabId))
+		.SetDisplayName(LOCTEXT("CMTStatListTabTitle", "Stat List"));
 	
 	// create tab layout
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("ComMaterialTools")
@@ -54,10 +59,11 @@ void SComMaterialToolsWindow::Construct(const FArguments& InArgs, const TSharedR
 				->Split
 				(
 					FTabManager::NewStack()
-						->AddTab(SearcherTabId, ETabState::OpenedTab)
-						->AddTab(StatTabId, ETabState::OpenedTab)
-						->AddTab(TextureFindTabId, ETabState::OpenedTab)
-						->SetForegroundTab(SearcherTabId)
+						->AddTab(CMTNodeSearcherTabId, ETabState::OpenedTab)
+						->AddTab(CMTParameterDumpTabId, ETabState::OpenedTab)
+						->AddTab(CMTTextureFindTabId, ETabState::OpenedTab)
+						->AddTab(CMTStatListTabId, ETabState::OpenedTab)
+						->SetForegroundTab(CMTNodeSearcherTabId)
 				)
 		);
 	
@@ -117,17 +123,21 @@ TSharedRef<SDockTab> SComMaterialToolsWindow::HandleTabManagerSpawnTab(const FSp
 		.TabRole(ETabRole::PanelTab);
 
 	// create window
-	if (TabIdentifier == SearcherTabId)
+	if (TabIdentifier == CMTNodeSearcherTabId)
 	{
 		TabWidget = SNew(SCMTNodeSearcher);
 	}
-	else if (TabIdentifier == StatTabId)
+	else if (TabIdentifier == CMTParameterDumpTabId)
 	{
-		TabWidget = SNew(SCMTStatList);
+		TabWidget = SNew(SCMTParameterDump);
 	}
-	else if (TabIdentifier == TextureFindTabId)
+	else if (TabIdentifier == CMTTextureFindTabId)
 	{
 		TabWidget = SNew(SCMTTextureFind);
+	}
+	else if (TabIdentifier == CMTStatListTabId)
+	{
+		TabWidget = SNew(SCMTStatList);
 	}
 
 	DockTab->SetContent(TabWidget.ToSharedRef());

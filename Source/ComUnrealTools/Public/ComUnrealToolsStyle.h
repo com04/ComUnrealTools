@@ -27,6 +27,13 @@ public:
 	static const FName MaterialIconBrushName;
 	static const FName MaterialFunctionIconBrushName;
 	static const FName MaterialInstanceIconBrushName;
+	static const FName MaterialScalarIconBrushName;
+	static const FName MaterialVectorIconBrushName;
+	static const FName MaterialTextureIconBrushName;
+	static const FName MaterialSwitchIconBrushName;
+	static const FName MaterialComponentMaskIconBrushName;
+	static const FName MaterialFontIconBrushName;
+	static const FName MaterialVirtualTextureIconBrushName;
 	static const FName MenuBGBrushName;
 	static const FName MenuBG2BrushName;
 	static const FName MenuBGActiveBrushName;

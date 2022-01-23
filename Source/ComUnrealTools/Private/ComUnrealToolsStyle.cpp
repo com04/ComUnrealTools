@@ -15,6 +15,13 @@ const FName FComUnrealToolsStyle::MaterialToolsTabIconBrushName = FName(TEXT("Co
 const FName FComUnrealToolsStyle::MaterialIconBrushName = FName(TEXT("ComUnrealTools.MaterialIcon"));
 const FName FComUnrealToolsStyle::MaterialFunctionIconBrushName = FName(TEXT("ComUnrealTools.MaterialFunctionIcon"));
 const FName FComUnrealToolsStyle::MaterialInstanceIconBrushName = FName(TEXT("ComUnrealTools.MaterialInstanceIcon"));
+const FName FComUnrealToolsStyle::MaterialScalarIconBrushName = FName(TEXT("ComUnrealTools.MaterialScalarIcon"));
+const FName FComUnrealToolsStyle::MaterialVectorIconBrushName = FName(TEXT("ComUnrealTools.MaterialVectorIcon"));
+const FName FComUnrealToolsStyle::MaterialTextureIconBrushName = FName(TEXT("ComUnrealTools.MaterialTextureIcon"));
+const FName FComUnrealToolsStyle::MaterialSwitchIconBrushName = FName(TEXT("ComUnrealTools.MaterialSwitchIcon"));
+const FName FComUnrealToolsStyle::MaterialComponentMaskIconBrushName = FName(TEXT("ComUnrealTools.MaterialComponentMaskIcon"));
+const FName FComUnrealToolsStyle::MaterialFontIconBrushName = FName(TEXT("ComUnrealTools.MaterialFontIcon"));
+const FName FComUnrealToolsStyle::MaterialVirtualTextureIconBrushName = FName(TEXT("ComUnrealTools.MaterialVirtualTextureIcon"));
 const FName FComUnrealToolsStyle::MenuBGBrushName = FName(TEXT("ComUnrealTools.MenuBackground"));
 const FName FComUnrealToolsStyle::MenuBG2BrushName = FName(TEXT("ComUnrealTools.MenuBackground2"));
 const FName FComUnrealToolsStyle::MenuBGActiveBrushName = FName(TEXT("ComUnrealTools.MenuBackgroundActive"));
@@ -70,15 +77,22 @@ TSharedRef<FSlateStyleSet> FComUnrealToolsStyle::Create()
 	TSharedRef<FSlateStyleSet> Style = MakeShareable(new FSlateStyleSet(GetStyleSetName()));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ComUnrealTools")->GetBaseDir() / TEXT("Resources"));
 
-	Style->Set(UnrealToolsIconBrushName,		new IMAGE_BRUSH(TEXT("UnrealToolsIcon_40x"),		Icon40x40));
-	Style->Set(UnrealToolsTabIconBrushName,		new IMAGE_BRUSH(TEXT("UnrealToolsIcon_40x"),		Icon16x16));
-	Style->Set(MaterialToolsTabIconBrushName,	new IMAGE_BRUSH(TEXT("MaterialToolsIcon_40x"),		Icon16x16));
-	Style->Set(MaterialIconBrushName,			new IMAGE_BRUSH(TEXT("MaterialIcon"),				Icon20x20));
-	Style->Set(MaterialFunctionIconBrushName,	new IMAGE_BRUSH(TEXT("MaterialFunctionIcon"),		Icon20x20));
-	Style->Set(MaterialInstanceIconBrushName,	new IMAGE_BRUSH(TEXT("MaterialInstanceIcon"),		Icon20x20));
-	Style->Set(MenuBGBrushName,					new BOX_BRUSH("MenuBackground",						BGTile));
-	Style->Set(MenuBG2BrushName,				new BOX_BRUSH("MenuBackground2",					BGTile));
-	Style->Set(MenuBGActiveBrushName,			new BOX_BRUSH("MenuBackgroundActive",				BGTile));
+	Style->Set(UnrealToolsIconBrushName,			new IMAGE_BRUSH(TEXT("UnrealToolsIcon_40x"),		Icon40x40));
+	Style->Set(UnrealToolsTabIconBrushName,			new IMAGE_BRUSH(TEXT("UnrealToolsIcon_40x"),		Icon16x16));
+	Style->Set(MaterialToolsTabIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialToolsIcon_40x"),		Icon16x16));
+	Style->Set(MaterialIconBrushName,				new IMAGE_BRUSH(TEXT("MaterialIcon"),				Icon20x20));
+	Style->Set(MaterialFunctionIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialFunctionIcon"),		Icon20x20));
+	Style->Set(MaterialInstanceIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialInstanceIcon"),		Icon20x20));
+	Style->Set(MaterialScalarIconBrushName,			new IMAGE_BRUSH(TEXT("MaterialScalarIcon"),			Icon20x20));
+	Style->Set(MaterialVectorIconBrushName,			new IMAGE_BRUSH(TEXT("MaterialVectorIcon"),			Icon20x20));
+	Style->Set(MaterialTextureIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialTextureIcon"),		Icon20x20));
+	Style->Set(MaterialSwitchIconBrushName,			new IMAGE_BRUSH(TEXT("MaterialSwitchIcon"),			Icon20x20));
+	Style->Set(MaterialComponentMaskIconBrushName,	new IMAGE_BRUSH(TEXT("MaterialComponentMaskIcon"),	Icon20x20));
+	Style->Set(MaterialFontIconBrushName,			new IMAGE_BRUSH(TEXT("MaterialFontIcon"),			Icon20x20));
+	Style->Set(MaterialVirtualTextureIconBrushName,	new IMAGE_BRUSH(TEXT("MaterialVirtualTextureIcon"),	Icon20x20));
+	Style->Set(MenuBGBrushName,						new BOX_BRUSH("MenuBackground",						BGTile));
+	Style->Set(MenuBG2BrushName,					new BOX_BRUSH("MenuBackground2",					BGTile));
+	Style->Set(MenuBGActiveBrushName,				new BOX_BRUSH("MenuBackgroundActive",				BGTile));
 
 	return Style;
 }
