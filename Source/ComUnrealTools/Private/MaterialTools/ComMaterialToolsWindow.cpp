@@ -4,6 +4,7 @@
 #include "CMTNodeSearcher/CMTNodeSearcher.h"
 #include "CMTStatList/CMTStatList.h"
 #include "CMTTextureFind/CMTTextureFind.h"
+#include "CMTParameterSearcher/CMTParameterSearcher.h"
 #include "CMTParameterDump/CMTParameterDump.h"
 #include "ComUnrealTools.h"
 
@@ -24,6 +25,7 @@
  *****************************************************************************/
 
 static const FName CMTNodeSearcherTabId("CMTNodeSearcher");
+static const FName CMTParameterSearcherTabId("CMTParameterSearcher");
 static const FName CMTParameterDumpTabId("CMTParameterDump");
 static const FName CMTTextureFindTabId("CMTTextureFind");
 static const FName CMTStatListTabId("CMTStatList");
@@ -40,6 +42,9 @@ void SComMaterialToolsWindow::Construct(const FArguments& InArgs, const TSharedR
 	// node searcher window
 	TabManager->RegisterTabSpawner(CMTNodeSearcherTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTNodeSearcherTabId))
 		.SetDisplayName(LOCTEXT("CMTNodeSearcherTabTitle", "Node Search"));
+	
+	TabManager->RegisterTabSpawner(CMTParameterSearcherTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTParameterSearcherTabId))
+		.SetDisplayName(LOCTEXT("CMTParameterSearcherTabTitle", "Parameter Searcher"));
 	
 	TabManager->RegisterTabSpawner(CMTParameterDumpTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTParameterDumpTabId))
 		.SetDisplayName(LOCTEXT("CMTParameterDumpTabTitle", "Parameter Dump"));
@@ -60,6 +65,7 @@ void SComMaterialToolsWindow::Construct(const FArguments& InArgs, const TSharedR
 				(
 					FTabManager::NewStack()
 						->AddTab(CMTNodeSearcherTabId, ETabState::OpenedTab)
+						->AddTab(CMTParameterSearcherTabId, ETabState::OpenedTab)
 						->AddTab(CMTParameterDumpTabId, ETabState::OpenedTab)
 						->AddTab(CMTTextureFindTabId, ETabState::OpenedTab)
 						->AddTab(CMTStatListTabId, ETabState::OpenedTab)
@@ -126,6 +132,10 @@ TSharedRef<SDockTab> SComMaterialToolsWindow::HandleTabManagerSpawnTab(const FSp
 	if (TabIdentifier == CMTNodeSearcherTabId)
 	{
 		TabWidget = SNew(SCMTNodeSearcher);
+	}
+	else if (TabIdentifier == CMTParameterSearcherTabId)
+	{
+		TabWidget = SNew(SCMTParameterSearcher);
 	}
 	else if (TabIdentifier == CMTParameterDumpTabId)
 	{
