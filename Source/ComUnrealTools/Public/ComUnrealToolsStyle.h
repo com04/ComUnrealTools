@@ -24,6 +24,7 @@ public:
 	static const FName UnrealToolsIconBrushName;
 	static const FName UnrealToolsTabIconBrushName;
 	static const FName MaterialToolsTabIconBrushName;
+	static const FName ViewToolsTabIconBrushName;
 	static const FName MaterialIconBrushName;
 	static const FName MaterialFunctionIconBrushName;
 	static const FName MaterialInstanceIconBrushName;

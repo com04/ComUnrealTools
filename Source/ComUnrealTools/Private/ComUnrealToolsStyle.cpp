@@ -12,6 +12,7 @@
 const FName FComUnrealToolsStyle::UnrealToolsIconBrushName = FName(TEXT("ComUnrealTools.OpenPluginWindow"));
 const FName FComUnrealToolsStyle::UnrealToolsTabIconBrushName = FName(TEXT("ComUnrealTools.TabIcon"));
 const FName FComUnrealToolsStyle::MaterialToolsTabIconBrushName = FName(TEXT("ComUnrealTools.MaterialToolsTabIcon"));
+const FName FComUnrealToolsStyle::ViewToolsTabIconBrushName = FName(TEXT("ComUnrealTools.ViewToolsTabIcon"));
 const FName FComUnrealToolsStyle::MaterialIconBrushName = FName(TEXT("ComUnrealTools.MaterialIcon"));
 const FName FComUnrealToolsStyle::MaterialFunctionIconBrushName = FName(TEXT("ComUnrealTools.MaterialFunctionIcon"));
 const FName FComUnrealToolsStyle::MaterialInstanceIconBrushName = FName(TEXT("ComUnrealTools.MaterialInstanceIcon"));
@@ -80,6 +81,7 @@ TSharedRef<FSlateStyleSet> FComUnrealToolsStyle::Create()
 	Style->Set(UnrealToolsIconBrushName,			new IMAGE_BRUSH(TEXT("UnrealToolsIcon_40x"),		Icon40x40));
 	Style->Set(UnrealToolsTabIconBrushName,			new IMAGE_BRUSH(TEXT("UnrealToolsIcon_40x"),		Icon16x16));
 	Style->Set(MaterialToolsTabIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialToolsIcon_40x"),		Icon16x16));
+	Style->Set(ViewToolsTabIconBrushName,			new IMAGE_BRUSH(TEXT("ViewToolsIcon_40x"),			Icon16x16));
 	Style->Set(MaterialIconBrushName,				new IMAGE_BRUSH(TEXT("MaterialIcon"),				Icon20x20));
 	Style->Set(MaterialFunctionIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialFunctionIcon"),		Icon20x20));
 	Style->Set(MaterialInstanceIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialInstanceIcon"),		Icon20x20));

@@ -16,10 +16,9 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 	
-	/** start plugin event */
-	void PluginButtonClicked();
-	
 private:
+	static const FName MaterialToolsTabName;
+	static const FName ViewToolsTabName;
 
 	/** spawn tab event */
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);

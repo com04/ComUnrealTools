@@ -5,13 +5,15 @@
 #include "ComUnrealToolsStyle.h"
 #include "ComUnrealToolsCommands.h"
 #include "MaterialTools/ComMaterialToolsWindow.h"
+#include "ViewTools/ComViewToolsWindow.h"
 
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 #include "WorkspaceMenuStructure.h"
 #include "WorkspaceMenuStructureModule.h"
 
-static const FName ComUnrealToolsTabName("ComUnrealTools");
+const FName FComUnrealToolsModule::MaterialToolsTabName = FName("ComMaterialTools");
+const FName FComUnrealToolsModule::ViewToolsTabName = FName("ComViewTools");
 
 #define LOCTEXT_NAMESPACE "FComUnrealToolsModule"
 
@@ -34,11 +36,18 @@ void FComUnrealToolsModule::StartupModule()
 		FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::UnrealToolsTabIconBrushName),
 		true);
 	
-	// マテリアルエディター
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ComUnrealToolsTabName, FOnSpawnTab::CreateRaw(this, &FComUnrealToolsModule::OnSpawnPluginTab))
+	// マテリアルツール
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(MaterialToolsTabName, FOnSpawnTab::CreateRaw(this, &FComUnrealToolsModule::OnSpawnPluginTab))
 		.SetDisplayName(LOCTEXT("ComMaterialToolsTitle", "com Material Tools"))
 		.SetTooltipText(LOCTEXT("ComMaterialToolsTooltip", "com Material Tools"))
 		.SetIcon(FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::MaterialToolsTabIconBrushName))
+		.SetGroup(ComUnrealToolsGroup);
+	
+	// Viewツール
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(ViewToolsTabName, FOnSpawnTab::CreateRaw(this, &FComUnrealToolsModule::OnSpawnPluginTab))
+		.SetDisplayName(LOCTEXT("ComViewToolsTitle", "com View Tools"))
+		.SetTooltipText(LOCTEXT("ComViewToolsTooltip", "com View Tools"))
+		.SetIcon(FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::ViewToolsTabIconBrushName))
 		.SetGroup(ComUnrealToolsGroup);
 }
 
@@ -50,7 +59,8 @@ void FComUnrealToolsModule::ShutdownModule()
 
 	FComUnrealToolsCommands::Unregister();
 
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ComUnrealToolsTabName);
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ViewToolsTabName);
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(MaterialToolsTabName);
 }
 
 TSharedRef<SDockTab> FComUnrealToolsModule::OnSpawnPluginTab(const FSpawnTabArgs& SpawnTabArgs)
@@ -58,17 +68,19 @@ TSharedRef<SDockTab> FComUnrealToolsModule::OnSpawnPluginTab(const FSpawnTabArgs
 	const TSharedRef<SDockTab> DockTab = SNew(SDockTab)
 		.TabRole(ETabRole::MajorTab);
 
-	// main window
-	TSharedRef<SComMaterialToolsWindow> Window = SNew(SComMaterialToolsWindow, DockTab, SpawnTabArgs.GetOwnerWindow());
+	if (SpawnTabArgs.GetTabId() == FTabId(MaterialToolsTabName))
+	{
+		TSharedRef<SComMaterialToolsWindow> MaterialWindow = SNew(SComMaterialToolsWindow, DockTab, SpawnTabArgs.GetOwnerWindow());
+		DockTab->SetContent(MaterialWindow);
+	}
+	else if (SpawnTabArgs.GetTabId() == FTabId(ViewToolsTabName))
+	{
+		TSharedRef<SComViewToolsWindow> ViewWindow = SNew(SComViewToolsWindow, DockTab, SpawnTabArgs.GetOwnerWindow());
+		DockTab->SetContent(ViewWindow);
+	}
 
-	DockTab->SetContent(Window);
 
 	return DockTab;
-}
-
-void FComUnrealToolsModule::PluginButtonClicked()
-{
-	FGlobalTabmanager::Get()->TryInvokeTab(ComUnrealToolsTabName);
 }
 
 #undef LOCTEXT_NAMESPACE
