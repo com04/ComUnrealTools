@@ -132,11 +132,50 @@ void SCVTMPCViewerWatch::AddWatchList(TWeakObjectPtr<UMaterialParameterCollectio
 			return;
 		}
 	}
-	FCVTMPCViewerWatchResultShare Result(new FCVTMPCViewerResult);
-	Result->Collection = InCollection;
-	Result->ParameterName = InParameterName;
-	Result->bIsScalar = bInIsScaler;
-	ResultList.Add(Result);
+	FCVTMPCViewerWatchResultShare NewResult(new FCVTMPCViewerResult);
+	NewResult->Collection = InCollection;
+	NewResult->ParameterName = InParameterName;
+	NewResult->bIsScalar = bInIsScaler;
+	
+	bool bAdd = false;
+
+	// ソートして挿入
+	// MPC名 > Scalar優先 > ParameterName順
+	for (int32 Index = 0 ; Index < ResultList.Num() ; ++Index)
+	{
+		const FCVTMPCViewerWatchResultShare& Result = ResultList[Index];
+		if (Result->Collection.IsValid())
+		{
+			const int32 CompareResult = Result->Collection->GetPathName().Compare(InCollection->GetPathName());
+			if (CompareResult > 0)
+			{
+				bAdd = true;
+			}
+			else if (CompareResult == 0)
+			{
+				if (!Result->bIsScalar && bInIsScaler)
+				{
+					// Scalar優先
+					bAdd = true;
+				}
+				else if (Result->ParameterName.Compare(InParameterName) > 0)
+				{
+					bAdd = true;
+				}
+			}
+			if (bAdd)
+			{
+				ResultList.Insert(NewResult, Index);
+				break;
+			}
+		}
+	}
+	
+	// ソートで挿入されなかったので末尾に追加
+	if (!bAdd)
+	{
+		ResultList.Add(NewResult);
+	}
 	
 	bRequestRefreshResult = true;
 }
