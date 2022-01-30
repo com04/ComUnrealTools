@@ -6,6 +6,7 @@
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
 #include "Utility/CUTUtility.h"
+#include "ViewTools/CVTMPCViewerWatch/CVTMPCViewerWatch.h"
 
 #include "AssetData.h"
 #include "Kismet/KismetMaterialLibrary.h"
@@ -31,8 +32,6 @@ SCVTMPCViewer::~SCVTMPCViewer()
 
 void SCVTMPCViewer::Construct(const FArguments& InArgs)
 {
-	bPIEFinishReset = false;
-
 	// asset search filter
 	TArray<const UClass*> ClassFilters;
 	ClassFilters.Add(UMaterialParameterCollection::StaticClass());
@@ -53,7 +52,7 @@ void SCVTMPCViewer::Construct(const FArguments& InArgs)
 	[
 		SNew(SBorder)
 		.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
-		.BorderBackgroundColor(FLinearColor::Gray) // Darken the outer border
+		.BorderBackgroundColor(FLinearColor::Gray)
 		.Padding(FMargin(5.0f, 5.0f))
 		[
 			SNew(SVerticalBox)
@@ -107,7 +106,7 @@ void SCVTMPCViewer::Construct(const FArguments& InArgs)
 				.Padding(0.f, 4.f, 12.f, 0.f)
 				[
 					SNew(SButton)
-					.Text(LOCTEXT("MPCWatch", "ウォッチに入れる"))
+					.Text(LOCTEXT("MPCWatch", "全てウォッチに入れる"))
 					.OnClicked(this, &SCVTMPCViewer::ButtonMPCWatchClicked)
 				]
 			]
@@ -186,39 +185,23 @@ void SCVTMPCViewer::Tick(const FGeometry& AllottedGeometry, const double InCurre
 		bool bChangedParameter = false;
 		if (World)
 		{
-			bPIEFinishReset = false;
 			UMaterialParameterCollectionInstance* MPCInstance = World->GetParameterCollectionInstance(SelectedMPC.Get());
 			for (TSharedPtr<FCVTMPCViewerResult>& Result : ResultList)
 			{
-				if (Result->bIsScalar)
-				{
-					float ParameterValue = 0.0f;
-					if (MPCInstance->GetScalarParameterValue(Result->ParameterName, ParameterValue))
-					{
-						Result->ScalarValue = ParameterValue;
-						bChangedParameter = bChangedParameter || !FMath::IsNearlyEqual(Result->ScalarValue, Result->DefaultScalarValue);
-					}
-				}
-				else
-				{
-					FLinearColor ParameterValue = FLinearColor::Black;
-					if (MPCInstance->GetVectorParameterValue(Result->ParameterName, ParameterValue))
-					{
-						Result->VectorValue = ParameterValue;
-						bChangedParameter = bChangedParameter || !Result->VectorValue.Equals(Result->DefaultVectorValue);
-					}
-				}
+				Result->UpdateDefaultValue();
+				bool bChanged = Result->UpdateParameterValue(MPCInstance);
+				bChangedParameter = bChangedParameter || bChanged;
 			}
 		}
-		else if (!bPIEFinishReset)
+		else
 		{
-			// 再生終わっているので初期化する
 			for (TSharedPtr<FCVTMPCViewerResult>& Result : ResultList)
 			{
+				// パラメーターがEditorで変更された時用
+				Result->UpdateDefaultValue();
 				Result->ScalarValue = Result->DefaultScalarValue;
 				Result->VectorValue = Result->DefaultVectorValue;
 			}
-			bPIEFinishReset = true;
 		}
 		if (MPCNoChangedBox.IsValid())
 		{
@@ -265,6 +248,7 @@ void SCVTMPCViewer::SetupMPCResult()
 		for (const FCollectionScalarParameter& Parameter : SelectedMPC->ScalarParameters)
 		{
 			TSharedPtr<FCVTMPCViewerResult> Result(new FCVTMPCViewerResult);
+			Result->Collection = SelectedMPC.Get();
 			Result->ParameterName = Parameter.ParameterName;
 			Result->bIsScalar = true;
 			Result->DefaultScalarValue = Result->ScalarValue = Parameter.DefaultValue;
@@ -273,6 +257,7 @@ void SCVTMPCViewer::SetupMPCResult()
 		for (const FCollectionVectorParameter& Parameter : SelectedMPC->VectorParameters)
 		{
 			TSharedPtr<FCVTMPCViewerResult> Result(new FCVTMPCViewerResult);
+			Result->Collection = SelectedMPC.Get();
 			Result->ParameterName = Parameter.ParameterName;
 			Result->bIsScalar = false;
 			Result->DefaultVectorValue = Result->VectorValue = Parameter.DefaultValue;
@@ -300,7 +285,19 @@ FText SCVTMPCViewer::GetAssetPathText() const
 /* ウォッチに入れるボタン */
 FReply SCVTMPCViewer::ButtonMPCWatchClicked()
 {
-	// todo
+	if (SelectedMPC.IsValid())
+	{
+		AssetPathText = FText::FromString(FCUTUtility::NormalizePathText(SelectedMPC->GetPathName()));
+		for (const FCollectionScalarParameter& Parameter : SelectedMPC->ScalarParameters)
+		{
+			SCVTMPCViewerWatch::AddWatchList(SelectedMPC.Get(), Parameter.ParameterName, true);
+		}
+		for (const FCollectionVectorParameter& Parameter : SelectedMPC->VectorParameters)
+		{
+			SCVTMPCViewerWatch::AddWatchList(SelectedMPC.Get(), Parameter.ParameterName, false);
+		}
+	}
+
 	return FReply::Handled();
 }
 // -------- Buttons

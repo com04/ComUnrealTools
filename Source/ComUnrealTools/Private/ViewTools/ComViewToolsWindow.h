@@ -47,6 +47,7 @@ private:
 
 private:
 	static const FName CVTMPCViewerTabId;
+	static const FName CVTMPCViewerWatchTabId;
 
 	/** Holds the tab manager that manages the front-end's tabs. */
 	TSharedPtr<FTabManager> TabManager;

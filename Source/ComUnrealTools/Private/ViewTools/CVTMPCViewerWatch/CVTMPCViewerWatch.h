@@ -9,8 +9,8 @@
 #include "Widgets/SCompoundWidget.h"
 
 
-typedef TSharedPtr<struct FCVTMPCViewerResult> FCVTMPCViewerResultShare;
-typedef STreeView<FCVTMPCViewerResultShare>  SCVTMPCViewerViewType;
+typedef TSharedPtr<struct FCVTMPCViewerResult> FCVTMPCViewerWatchResultShare;
+typedef STreeView<FCVTMPCViewerWatchResultShare>  SCVTMPCViewerWatchViewType;
 
 struct FAssetData;
 class SButton;
@@ -22,12 +22,12 @@ class UMaterialParameterCollection;
 /**
  * Implements the launcher application
  */
-class SCVTMPCViewer
+class SCVTMPCViewerWatch
 	: public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SCVTMPCViewer) { }
+	SLATE_BEGIN_ARGS(SCVTMPCViewerWatch) { }
 	SLATE_END_ARGS()
 
 public:
@@ -42,42 +42,23 @@ public:
 
 
 	/** Destructor. */
-	~SCVTMPCViewer();
+	~SCVTMPCViewerWatch();
 
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 public:
+	static const FText& GetHeaderMPCNameText();
 	static const FText& GetHeaderParameterNameText();
 	static const FText& GetHeaderParameterDefaultValueText();
 	static const FText& GetHeaderParameterValueText();
-	static const FText& GetHeaderWatchText();
+	static const FText& GetHeaderWatchEraseText();
 
+	// ウォッチリストに追加
+	static void AddWatchList(TWeakObjectPtr<UMaterialParameterCollection> InCollection, FName InParameterName, bool bInIsScaler);
+	// ウォッチリストから削除
+	static void RemoveWatchList(TWeakObjectPtr<UMaterialParameterCollection> InCollection, FName InParameterName, bool bInIsScaler);
 protected:
 	
-	// Asset Select --------
-	
-	/** アセット選択のクラスフィルター */
-	bool ShouldFilterAsset(const FAssetData& AssetData);
-	/** 選択したアセット表示パス */
-	FString GetObjectPath() const;
-	/** アセット選択変更イベント */
-	void OnObjectChanged(const FAssetData& AssetData);
-	void SetupMPCResult();
-	
-	// -------- Asset Select
-	
-	
-	// Text --------
-	FText GetAssetPathText() const;
-	FText GetRuntimeChangedText() const;
-	
-	// -------- Text
-	
-	
-	// Buttons --------
-	/* ウォッチに入れるボタン */
-	FReply ButtonMPCWatchClicked();
-	// -------- Buttons
-	
+	FReply ButtonClearWatchClicked();
 	
 	// Result List --------
 	SHeaderRow::FColumn::FArguments CreateHeaderColumn(const FText& Name, int32 Width);
@@ -87,15 +68,10 @@ protected:
 
 private:
 
-	TSharedPtr<SHorizontalBox> MPCNoChangedBox;
 	// 結果の表ウィジェット
-	TSharedPtr<SListView<TSharedPtr<FCVTMPCViewerResult>>> ResultView;
-	// 結果の表の値リスト
-	TArray<TSharedPtr<FCVTMPCViewerResult>> ResultList;
+	TSharedPtr<SListView<FCVTMPCViewerWatchResultShare>> ResultView;
 
-	// 
-	FText AssetPathText;
-	
-	static TWeakObjectPtr<UMaterialParameterCollection> SelectedMPC;
-	
+	// ウォッチするリスト
+	static TArray<FCVTMPCViewerWatchResultShare> ResultList;
+	static bool bRequestRefreshResult;
 };

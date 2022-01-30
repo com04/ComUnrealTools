@@ -4,6 +4,7 @@
 #include "CVTMPCViewer.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
+#include "ViewTools/CVTMPCViewerWatch/CVTMPCViewerWatch.h"
 
 #include "Widgets/SWidget.h"
 
@@ -50,7 +51,7 @@ TSharedRef<SWidget> SCVTMPCViewerResultRow::GenerateWidgetForColumn(const FName&
 				.HAlign(HAlign_Right)
 				[
 					SNew(STextBlock)
-					.Text((Info->bIsScalar) ? GetScalarValueText(Info->DefaultScalarValue) : GetVectorValueText(Info->DefaultVectorValue))
+					.Text(this, &SCVTMPCViewerResultRow::GetParameterDefaultValueText)
 				];
 		BorderColor2List.Add(Border);
 		return Border;
@@ -119,21 +120,21 @@ void SCVTMPCViewerResultRow::OnMouseLeave(const FPointerEvent& InMouseEvent)
 	return SMultiColumnTableRow::OnMouseLeave(InMouseEvent);
 }
 
-FText SCVTMPCViewerResultRow::GetScalarValueText(float ScalarParameter) const
+FText SCVTMPCViewerResultRow::GetParameterDefaultValueText() const
 {
-	return FText::FromString(FString::Printf(TEXT("%f"), ScalarParameter));
-}
-FText SCVTMPCViewerResultRow::GetVectorValueText(FLinearColor VectorParameter) const
-{
-	return FText::FromString(FString::Printf(TEXT("R=%f, G=%f, B=%f, A=%f"),
-			VectorParameter.R, VectorParameter.G, VectorParameter.B, VectorParameter.A));
+	FText RetText;
+	if (Info.IsValid())
+	{
+		RetText = Info->GetParameterDefaultValueText();
+	}
+	return RetText;
 }
 FText SCVTMPCViewerResultRow::GetParameterValueText() const
 {
 	FText RetText;
 	if (Info.IsValid())
 	{
-		RetText = (Info->bIsScalar) ? GetScalarValueText(Info->ScalarValue) : GetVectorValueText(Info->VectorValue);
+		RetText = Info->GetParameterValueText();
 	}
 	return RetText;
 }
@@ -165,7 +166,11 @@ FSlateColor SCVTMPCViewerResultRow::GetParameterValueColor() const
 /* ウォッチに入れるボタン */
 FReply SCVTMPCViewerResultRow::ButtonWatchClicked()
 {
-	// todo
+	if (Info.IsValid())
+	{
+		SCVTMPCViewerWatch::AddWatchList(Info->Collection, Info->ParameterName, Info->bIsScalar);
+	}
+
 	return FReply::Handled();
 }
 

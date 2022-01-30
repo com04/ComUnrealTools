@@ -2,6 +2,7 @@
 
 #include "ComViewToolsWindow.h"
 #include "CVTMPCViewer/CVTMPCViewer.h"
+#include "CVTMPCViewerWatch/CVTMPCViewerWatch.h"
 #include "ComUnrealTools.h"
 
 #include "EditorStyleSet.h"
@@ -21,6 +22,7 @@
  *****************************************************************************/
 
 const FName SComViewToolsWindow::CVTMPCViewerTabId = FName("CVTMPCViewer");
+const FName SComViewToolsWindow::CVTMPCViewerWatchTabId = FName("CVTMPCViewerWatch");
 
 
 /* SComViewToolsWindow interface
@@ -31,9 +33,10 @@ void SComViewToolsWindow::Construct(const FArguments& InArgs, const TSharedRef<S
 	// create & initialize tab manager
 	TabManager = FGlobalTabmanager::Get()->NewTabManager(ConstructUnderMajorTab);
 	
-	// node searcher window
 	TabManager->RegisterTabSpawner(CVTMPCViewerTabId, FOnSpawnTab::CreateRaw(this, &SComViewToolsWindow::HandleTabManagerSpawnTab, CVTMPCViewerTabId))
 		.SetDisplayName(LOCTEXT("CVTMPCViewerTabTitle", "MPC Viewer"));
+	TabManager->RegisterTabSpawner(CVTMPCViewerWatchTabId, FOnSpawnTab::CreateRaw(this, &SComViewToolsWindow::HandleTabManagerSpawnTab, CVTMPCViewerWatchTabId))
+		.SetDisplayName(LOCTEXT("CVTMPCViewerWatchTabTitle", "MPC Viewer Watch"));
 	
 	// create tab layout
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("ComViewTools")
@@ -45,6 +48,7 @@ void SComViewToolsWindow::Construct(const FArguments& InArgs, const TSharedRef<S
 				(
 					FTabManager::NewStack()
 						->AddTab(CVTMPCViewerTabId, ETabState::OpenedTab)
+						->AddTab(CVTMPCViewerWatchTabId, ETabState::OpenedTab)
 						->SetForegroundTab(CVTMPCViewerTabId)
 				)
 		);
@@ -108,6 +112,10 @@ TSharedRef<SDockTab> SComViewToolsWindow::HandleTabManagerSpawnTab(const FSpawnT
 	if (TabIdentifier == CVTMPCViewerTabId)
 	{
 		TabWidget = SNew(SCVTMPCViewer);
+	}
+	else if (TabIdentifier == CVTMPCViewerWatchTabId)
+	{
+		TabWidget = SNew(SCVTMPCViewerWatch);
 	}
 
 	DockTab->SetContent(TabWidget.ToSharedRef());

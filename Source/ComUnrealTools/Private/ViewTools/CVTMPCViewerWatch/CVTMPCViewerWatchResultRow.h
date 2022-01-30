@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 
-#include "CVTMPCViewerResult.h"
+#include "CVTMPCViewerWatch.h"
 
 #include "Containers/Array.h"
 #include "SlateFwd.h"
@@ -16,11 +16,11 @@ class STableViewBase;
 class SWidget;
 
 /** Implements a row widget for result list. */
-class SCVTMPCViewerResultRow : public SMultiColumnTableRow<TSharedPtr<FCVTMPCViewerResult>>
+class SCVTMPCViewerWatchResultRow : public SMultiColumnTableRow<TSharedPtr<FCVTMPCViewerResult>>
 {
 public:
 
-	SLATE_BEGIN_ARGS(SCVTMPCViewerResultRow)	{}
+	SLATE_BEGIN_ARGS(SCVTMPCViewerWatchResultRow)	{}
 		SLATE_ARGUMENT(TSharedPtr<FCVTMPCViewerResult>, Info)
 	SLATE_END_ARGS()
 
@@ -40,8 +40,8 @@ private:
 	FText GetParameterDefaultValueText() const;
 	FText GetParameterValueText() const;
 	FSlateColor GetParameterValueColor() const;
-	/* ウォッチに入れるボタン */
-	FReply ButtonWatchClicked();
+	/* ウォッチ解除ボタン */
+	FReply ButtonWatchClearClicked();
 
 private:
 
