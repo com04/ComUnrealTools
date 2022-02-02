@@ -20,6 +20,7 @@ public:
 	static const ISlateStyle& Get();
 
 	static FName GetStyleSetName();
+	static UMaterial* GetImageOpaqueMaterial();
 
 	static const FName UnrealToolsIconBrushName;
 	static const FName UnrealToolsTabIconBrushName;
@@ -42,6 +43,7 @@ public:
 
 private:
 	static TSharedRef<class FSlateStyleSet> Create();
+	static UMaterial* ImageOpaqueMaterial;
 
 private:
 

@@ -3,6 +3,7 @@
 #include "ComViewToolsWindow.h"
 #include "CVTMPCViewer/CVTMPCViewer.h"
 #include "CVTMPCViewerWatch/CVTMPCViewerWatch.h"
+#include "CVTRenderTargetViewer/CVTRenderTargetViewer.h"
 #include "ComUnrealTools.h"
 
 #include "EditorStyleSet.h"
@@ -23,6 +24,7 @@
 
 const FName SComViewToolsWindow::CVTMPCViewerTabId = FName("CVTMPCViewer");
 const FName SComViewToolsWindow::CVTMPCViewerWatchTabId = FName("CVTMPCViewerWatch");
+const FName SComViewToolsWindow::CVTRenderTargetViewerTabId = FName("CVTRenderTargetViewer");
 
 
 /* SComViewToolsWindow interface
@@ -37,6 +39,8 @@ void SComViewToolsWindow::Construct(const FArguments& InArgs, const TSharedRef<S
 		.SetDisplayName(LOCTEXT("CVTMPCViewerTabTitle", "MPC Viewer"));
 	TabManager->RegisterTabSpawner(CVTMPCViewerWatchTabId, FOnSpawnTab::CreateRaw(this, &SComViewToolsWindow::HandleTabManagerSpawnTab, CVTMPCViewerWatchTabId))
 		.SetDisplayName(LOCTEXT("CVTMPCViewerWatchTabTitle", "MPC Viewer Watch"));
+	TabManager->RegisterTabSpawner(CVTRenderTargetViewerTabId, FOnSpawnTab::CreateRaw(this, &SComViewToolsWindow::HandleTabManagerSpawnTab, CVTRenderTargetViewerTabId))
+		.SetDisplayName(LOCTEXT("CVTRenderTargetViewerTabTitle", "RenderTarget Viewer"));
 	
 	// create tab layout
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("ComViewTools")
@@ -49,6 +53,7 @@ void SComViewToolsWindow::Construct(const FArguments& InArgs, const TSharedRef<S
 					FTabManager::NewStack()
 						->AddTab(CVTMPCViewerTabId, ETabState::OpenedTab)
 						->AddTab(CVTMPCViewerWatchTabId, ETabState::OpenedTab)
+						->AddTab(CVTRenderTargetViewerTabId, ETabState::OpenedTab)
 						->SetForegroundTab(CVTMPCViewerTabId)
 				)
 		);
@@ -116,6 +121,10 @@ TSharedRef<SDockTab> SComViewToolsWindow::HandleTabManagerSpawnTab(const FSpawnT
 	else if (TabIdentifier == CVTMPCViewerWatchTabId)
 	{
 		TabWidget = SNew(SCVTMPCViewerWatch);
+	}
+	else if (TabIdentifier == CVTRenderTargetViewerTabId)
+	{
+		TabWidget = SNew(SCVTRenderTargetViewer);
 	}
 
 	DockTab->SetContent(TabWidget.ToSharedRef());

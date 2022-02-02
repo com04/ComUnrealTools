@@ -10,7 +10,7 @@
 	"DocsURL": "",
 	"SupportURL": "",
 	"EngineVersion": "4.27.0",
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"Installed": false,
 	"Modules": [
 		{
