@@ -116,7 +116,7 @@ TSharedRef<SDockTab> SComViewToolsWindow::HandleTabManagerSpawnTab(const FSpawnT
 	TSharedPtr<SWidget> TabWidget = SNullWidget::NullWidget;
 
 	TSharedRef<SDockTab> DockTab = SNew(SDockTab)
-		.TabRole(ETabRole::PanelTab);
+		.TabRole(ETabRole::NomadTab);
 
 	// create window
 	if (TabIdentifier == CVTMPCViewerTabId)

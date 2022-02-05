@@ -126,7 +126,7 @@ TSharedRef<SDockTab> SComMaterialToolsWindow::HandleTabManagerSpawnTab(const FSp
 	TSharedPtr<SWidget> TabWidget = SNullWidget::NullWidget;
 
 	TSharedRef<SDockTab> DockTab = SNew(SDockTab)
-		.TabRole(ETabRole::PanelTab);
+		.TabRole(ETabRole::NomadTab);
 
 	// create window
 	if (TabIdentifier == CMTNodeSearcherTabId)
