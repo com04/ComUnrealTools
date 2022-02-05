@@ -21,6 +21,8 @@ public:
 
 	static FName GetStyleSetName();
 	static UMaterial* GetImageOpaqueMaterial();
+	static FSlateFontInfo GetLargeFontStyle();
+	static FSlateFontInfo GetMiddleFontStyle();
 
 	static const FName UnrealToolsIconBrushName;
 	static const FName UnrealToolsTabIconBrushName;

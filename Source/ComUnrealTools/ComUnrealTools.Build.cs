@@ -50,6 +50,7 @@ public class ComUnrealTools : ModuleRules
 				"DesktopPlatform",
 				"MainFrame",
                 "RenderCore",
+                "AppFrameWork",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

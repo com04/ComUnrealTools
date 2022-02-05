@@ -55,6 +55,19 @@ UMaterial* FComUnrealToolsStyle::GetImageOpaqueMaterial()
 	return ImageOpaqueMaterial;
 }
 
+FSlateFontInfo FComUnrealToolsStyle::GetLargeFontStyle()
+{
+	FSlateFontInfo Font = FCoreStyle::Get().GetWidgetStyle<FTextBlockStyle>("NormalText").Font;
+	Font.Size = 20;
+	return Font;
+}
+FSlateFontInfo FComUnrealToolsStyle::GetMiddleFontStyle()
+{
+	FSlateFontInfo Font = FCoreStyle::Get().GetWidgetStyle<FTextBlockStyle>("NormalText").Font;
+	Font.Size = 12;
+	return Font;
+}
+
 void FComUnrealToolsStyle::ReloadTextures()
 {
 	if (FSlateApplication::IsInitialized())
