@@ -12,8 +12,9 @@
 
 
 class SButton;
-class ITableRow;
 class STableViewBase;
+class ITableRow;
+class UCUTDeveloperSettings;
 
 
 
@@ -44,6 +45,10 @@ public:
 
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 public:
+	/** エディタの環境設定での値変更時のコールバック */
+	static void OnChangedEditorSettings(UCUTDeveloperSettings* Settings, struct FPropertyChangedEvent& Property);
+	/** エディタ終了時の現在環境の保存 */
+	static void OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings);
 
 protected:
 	
@@ -67,21 +72,36 @@ protected:
 	// -------- Result
 	
 	void AddItem(const FCVTVolumeRendererItemInfo& InInfo);
+	// アイテム一つの描画
 	void RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRendererItem> InItem, float InDuration);
+	
+	// AlwaysがONに設定された時のコールバック
 	void OnAlwaysON(TSharedPtr<FCVTVolumeRendererItem> Item);
+	// OneShotが押された時のコールバック
 	void OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item);
 	
+	// 既に登録しているクラスか
+	static bool FindClassInItemInfos(const TArray<FCVTVolumeRendererItemInfo>& InItemInfos, TSubclassOf<AActor> InClass);
 private:
 	TSharedPtr<STileView<TSharedPtr<FCVTVolumeRendererItem>>> ItemTileView;
 	
+	// 現在選択中のクラス
 	TSubclassOf<AActor> SelectedClass;
+	// 追加されたActorリスト
 	TArray<TSharedPtr<FCVTVolumeRendererItem>> Items;
 	
+	// AlwaysがONになっているリスト
 	TArray<TSharedPtr<FCVTVolumeRendererItem>> RequestAlwaysItems;
+	// OneShotが押された～描画が走る前のリスト
 	TArray<TSharedPtr<FCVTVolumeRendererItem>> RequestOneShotItems;
 	
+	// 線の太さ
 	static float LineThickness;
+	// OneShotの際の描画時間
 	static float OneShotDuration;
 	static TArray<FCVTVolumeRendererItemInfo> ItemInfos;
 	static const TArray<FLinearColor> DefaultColorList;
+
+	// エディターの環境設定に変更があったか
+	static bool bDirtyEditorSettings;
 };

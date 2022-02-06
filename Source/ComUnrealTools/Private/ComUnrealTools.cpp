@@ -6,7 +6,9 @@
 #include "ComUnrealToolsCommands.h"
 #include "MaterialTools/ComMaterialToolsWindow.h"
 #include "ViewTools/ComViewToolsWindow.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
+#include "Interfaces/IPluginManager.h"
 #include "SlateBasics.h"
 #include "SlateExtras.h"
 #include "WorkspaceMenuStructure.h"
@@ -26,6 +28,18 @@ void FComUnrealToolsModule::StartupModule()
 
 	FComUnrealToolsCommands::Register();
 	
+	// config
+	{
+		FString PluginDirectory = IPluginManager::Get().FindPlugin(TEXT("ComUnrealTools"))->GetBaseDir();
+		FString ConfigFilePath = PluginDirectory + TEXT("/Config/Settings.ini");
+
+		DeveloperSettings = GetMutableDefault<UCUTDeveloperSettings>();
+		// Pluginのデフォルト設定
+		DeveloperSettings->LoadConfig(nullptr, *ConfigFilePath);
+		// savedのユーザーが追加した設定
+		DeveloperSettings->LoadConfig();
+	}
+
 	// Add "Menubar - [Window] -> [Developer Tools]"
 	const IWorkspaceMenuStructure& MenuStructure = WorkspaceMenu::GetMenuStructure();
 

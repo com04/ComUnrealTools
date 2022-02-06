@@ -6,6 +6,7 @@
 #include "CVTRenderTargetViewer/CVTRenderTargetViewer.h"
 #include "CVTVolumeRenderer/CVTVolumeRenderer.h"
 #include "ComUnrealTools.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "EditorStyleSet.h"
 #include "Framework/Docking/TabManager.h"
@@ -89,7 +90,13 @@ void SComViewToolsWindow::Construct(const FArguments& InArgs, const TSharedRef<S
 			]
 	];
 }
-
+SComViewToolsWindow::~SComViewToolsWindow()
+{
+	// 終了時に現在の設定を保存しておく
+	UCUTDeveloperSettings* DeveloperSettings = GetMutableDefault<UCUTDeveloperSettings>();
+	SCVTVolumeRenderer::OnFinalizeEditorSettings(DeveloperSettings);
+	DeveloperSettings->SaveConfig();
+}
 
 /* SComViewToolsWindow implementation
  *****************************************************************************/

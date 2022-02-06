@@ -7,6 +7,7 @@
 
 class FToolBarBuilder;
 class FMenuBuilder;
+class UCUTDeveloperSettings;
 
 class FComUnrealToolsModule : public IModuleInterface
 {
@@ -22,5 +23,8 @@ private:
 
 	/** spawn tab event */
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);
+
+	/** Editor Setting */
+	UCUTDeveloperSettings* DeveloperSettings = nullptr;
 
 };

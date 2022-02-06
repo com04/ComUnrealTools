@@ -20,6 +20,7 @@ public:
 	SLATE_BEGIN_ARGS(SComViewToolsWindow) { }
 	SLATE_END_ARGS()
 
+	virtual ~SComViewToolsWindow();
 public:
 
 	/**

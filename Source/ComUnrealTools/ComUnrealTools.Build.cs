@@ -51,6 +51,7 @@ public class ComUnrealTools : ModuleRules
 				"MainFrame",
                 "RenderCore",
                 "AppFrameWork",
+                "DeveloperSettings",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

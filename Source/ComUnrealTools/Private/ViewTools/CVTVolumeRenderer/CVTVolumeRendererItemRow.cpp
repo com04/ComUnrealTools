@@ -79,7 +79,7 @@ void SCVTVolumeRendererItemRow::Construct(const FArguments& InArgs, TSharedPtr<F
 
 FText SCVTVolumeRendererItemRow::GetDispAlwaysText() const
 {
-	if (Item->GetInfo().bAlways)
+	if (Item->IsAlways())
 	{
 		return LOCTEXT("DispAlwaysOFF", "常に表示ＯＦＦ");
 	}
@@ -93,7 +93,7 @@ FText SCVTVolumeRendererItemRow::GetClassText() const
 
 FSlateColor SCVTVolumeRendererItemRow::GetAlwaysButtonColor() const
 {
-	if (Item->GetInfo().bAlways)
+	if (Item->IsAlways())
 	{
 		return FLinearColor(0.6f, 0.3f, 0.3f, 1.0f);
 	}
@@ -125,7 +125,7 @@ void SCVTVolumeRendererItemRow::OnMouseLeave(const FPointerEvent& MouseEvent)
 
 FReply SCVTVolumeRendererItemRow::ButtonDispAlwaysClicked()
 {
-	Item->SetInfoAlways(!Item->GetInfo().bAlways);
+	Item->SetAlways(!Item->IsAlways());
 	Item->OnAlwaysON(Item);
 	return FReply::Handled();
 }

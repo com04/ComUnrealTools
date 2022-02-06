@@ -5,6 +5,7 @@
 #include "CVTVolumeRendererItemRow.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 #include "Utility/CUTUtility.h"
 
 #include "EngineUtils.h"
@@ -38,6 +39,7 @@ const TArray<FLinearColor> SCVTVolumeRenderer::DefaultColorList =
 	FLinearColor(0.2f, 0.8f, 0.8f),
 	FLinearColor(0.8f, 0.8f, 0.8f),
 };
+bool SCVTVolumeRenderer::bDirtyEditorSettings = true;
 
 
 SCVTVolumeRenderer::~SCVTVolumeRenderer()
@@ -188,6 +190,21 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 		]
 	];
 	
+	// エディター設定から
+	if (bDirtyEditorSettings)
+	{
+		if (const UCUTDeveloperSettings* Settings = GetDefault<UCUTDeveloperSettings>())
+		{
+			for (const FCVTVolumeRendererItemInfo& ItemInfo : Settings->CVTVolumeRendererItems)
+			{
+				if (ItemInfo.Class.Get() && !FindClassInItemInfos(ItemInfos, ItemInfo.Class))
+				{
+					ItemInfos.Add(ItemInfo);
+				}
+			}
+		}
+	}
+	
 	// キャッシュから復元
 	for (TArray<FCVTVolumeRendererItemInfo>::TIterator ItemInfoIt(ItemInfos) ; ItemInfoIt ; ++ItemInfoIt)
 	{
@@ -224,12 +241,53 @@ void SCVTVolumeRenderer::Tick(const FGeometry& AllottedGeometry, const double In
 		for (TArray<TSharedPtr<FCVTVolumeRendererItem>>::TIterator ItemIt(RequestAlwaysItems) ; ItemIt ; ++ItemIt)
 		{
 			RenderItem(World, *ItemIt, 0.0f);
-			if (!(*ItemIt)->GetInfo().bAlways)
+			if (!(*ItemIt)->IsAlways())
 			{
 				ItemIt.RemoveCurrent();
 			}
 		}
-		// RequestAlwaysItems.Empty();
+	}
+}
+
+void SCVTVolumeRenderer::OnChangedEditorSettings(UCUTDeveloperSettings* Settings, FPropertyChangedEvent& Property)
+{
+	if (!IsValid(Settings))
+	{
+		return;
+	}
+	const FName PropertyName = Property.GetPropertyName();
+	if (PropertyName == TEXT("CVTVolumeRendererItems"))
+	{
+		// 要素が新規追加された際に色をテーブルから設定しておく
+		if (Property.ChangeType == EPropertyChangeType::ArrayAdd)
+		{
+			const int32 Index = Property.GetArrayIndex(TEXT("CVTVolumeRendererItems"));
+			if (Index >= 0)
+			{
+				if (Settings->CVTVolumeRendererItems.IsValidIndex(Index))
+				{
+					const int32 ColorIndex = FMath::Max(Settings->CVTVolumeRendererItems.Num()-1, 0);
+					Settings->CVTVolumeRendererItems[Index].DisplayColor = DefaultColorList[ColorIndex % DefaultColorList.Num()];
+				}
+			}
+		}
+		bDirtyEditorSettings = true;
+	}
+}
+/** エディタ終了時の現在環境の保存 */
+void SCVTVolumeRenderer::OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings)
+{
+	if (!IsValid(Settings))
+	{
+		return;
+	}
+	// エディター設定に保存しておく
+	for (const FCVTVolumeRendererItemInfo& ItemInfo : ItemInfos)
+	{
+		if (!FindClassInItemInfos(Settings->CVTVolumeRendererItems, ItemInfo.Class))
+		{
+			Settings->CVTVolumeRendererItems.Add(ItemInfo);
+		}
 	}
 }
 
@@ -262,12 +320,9 @@ FReply SCVTVolumeRenderer::ButtonClassAddClicked()
 	if (SelectedClass)
 	{
 		// 重複登録チェック
-		for (const FCVTVolumeRendererItemInfo& Info : ItemInfos)
+		if (FindClassInItemInfos(ItemInfos, SelectedClass))
 		{
-			if (Info.Class == SelectedClass)
-			{
-				return FReply::Handled();
-			}
+			return FReply::Handled();
 		}
 	
 		FCVTVolumeRendererItemInfo NewItemInfo;
@@ -311,6 +366,7 @@ void SCVTVolumeRenderer::AddItem(const FCVTVolumeRendererItemInfo& InInfo)
 	};
 	Items.Add(NewItem);
 }
+// アイテム一つの描画
 void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRendererItem> InItem, float InDuration)
 {
 	const FCVTVolumeRendererItemInfo& Info = InItem->GetInfo();
@@ -366,13 +422,28 @@ void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRender
 	}
 }
 
+// AlwaysがONに設定された時のコールバック
 void SCVTVolumeRenderer::OnAlwaysON(TSharedPtr<FCVTVolumeRendererItem> Item)
 {
 	RequestAlwaysItems.AddUnique(Item);
 }
+// OneShotが押された時のコールバック
 void SCVTVolumeRenderer::OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item)
 {
 	RequestOneShotItems.AddUnique(Item);
+}
+
+// 既に登録しているクラスか
+bool SCVTVolumeRenderer::FindClassInItemInfos(const TArray<FCVTVolumeRendererItemInfo>& InItemInfos, TSubclassOf<AActor> InClass)
+{
+	for (const FCVTVolumeRendererItemInfo& Info : InItemInfos)
+	{
+		if (Info.Class == InClass)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 #undef LOCTEXT_NAMESPACE
