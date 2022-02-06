@@ -203,6 +203,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				}
 			}
 		}
+		bDirtyEditorSettings = false;
 	}
 	
 	// キャッシュから復元
@@ -255,24 +256,7 @@ void SCVTVolumeRenderer::OnChangedEditorSettings(UCUTDeveloperSettings* Settings
 	{
 		return;
 	}
-	const FName PropertyName = Property.GetPropertyName();
-	if (PropertyName == TEXT("CVTVolumeRendererItems"))
-	{
-		// 要素が新規追加された際に色をテーブルから設定しておく
-		if (Property.ChangeType == EPropertyChangeType::ArrayAdd)
-		{
-			const int32 Index = Property.GetArrayIndex(TEXT("CVTVolumeRendererItems"));
-			if (Index >= 0)
-			{
-				if (Settings->CVTVolumeRendererItems.IsValidIndex(Index))
-				{
-					const int32 ColorIndex = FMath::Max(Settings->CVTVolumeRendererItems.Num()-1, 0);
-					Settings->CVTVolumeRendererItems[Index].DisplayColor = DefaultColorList[ColorIndex % DefaultColorList.Num()];
-				}
-			}
-		}
-		bDirtyEditorSettings = true;
-	}
+	// const FName PropertyName = Property.GetPropertyName();
 }
 /** エディタ終了時の現在環境の保存 */
 void SCVTVolumeRenderer::OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings)

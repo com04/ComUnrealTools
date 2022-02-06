@@ -94,6 +94,7 @@ SComViewToolsWindow::~SComViewToolsWindow()
 {
 	// 終了時に現在の設定を保存しておく
 	UCUTDeveloperSettings* DeveloperSettings = GetMutableDefault<UCUTDeveloperSettings>();
+	SCVTMPCViewerWatch::OnFinalizeEditorSettings(DeveloperSettings);
 	SCVTVolumeRenderer::OnFinalizeEditorSettings(DeveloperSettings);
 	DeveloperSettings->SaveConfig();
 }

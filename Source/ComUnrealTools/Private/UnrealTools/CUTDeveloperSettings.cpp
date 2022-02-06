@@ -2,6 +2,7 @@
 
 #include "CUTDeveloperSettings.h"
 #include "ViewTools/CVTVolumeRenderer/CVTVolumeRenderer.h"
+#include "ViewTools/CVTMPCViewerWatch/CVTMPCViewerWatch.h"
 
 
 #define LOCTEXT_NAMESPACE "CUTDeveloperSettings"
@@ -28,6 +29,7 @@ FName UCUTDeveloperSettings::GetCategoryName() const
 /** 値変更時のコールバック */
 void UCUTDeveloperSettings::OnPropertySettingChanged(UObject* Object, struct FPropertyChangedEvent& Property)
 {
+	SCVTMPCViewerWatch::OnChangedEditorSettings(this, Property);
 	SCVTVolumeRenderer::OnChangedEditorSettings(this, Property);
 
 	SaveConfig();

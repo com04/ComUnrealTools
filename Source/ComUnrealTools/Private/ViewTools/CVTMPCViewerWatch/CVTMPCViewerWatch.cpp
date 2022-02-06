@@ -5,6 +5,7 @@
 #include "ViewTools/CVTMPCViewer/CVTMPCViewerResult.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 #include "Utility/CUTUtility.h"
 
 #include "AssetData.h"
@@ -24,6 +25,7 @@
 // SCVTMPCViewerWatch
 TArray<FCVTMPCViewerWatchResultShare> SCVTMPCViewerWatch::ResultList;
 bool SCVTMPCViewerWatch::bRequestRefreshResult = false;
+bool SCVTMPCViewerWatch::bDirtyEditorSettings = true;
 
 
 SCVTMPCViewerWatch::~SCVTMPCViewerWatch()
@@ -84,8 +86,66 @@ void SCVTMPCViewerWatch::Construct(const FArguments& InArgs)
 			]
 		]
 	];
-	
+
+
+	// エディター設定から
+	if (bDirtyEditorSettings)
+	{
+		if (const UCUTDeveloperSettings* Settings = GetDefault<UCUTDeveloperSettings>())
+		{
+			for (const FCVTMPCViewerConfig& ConfigItem : Settings->CVTMPCViewerItems)
+			{
+				if (IsValid(ConfigItem.Collection))
+				{
+					if (ConfigItem.Collection->GetScalarParameterByName(ConfigItem.ParameterName))
+					{
+						AddWatchList(ConfigItem.Collection, ConfigItem.ParameterName, true);
+					}
+					else if (ConfigItem.Collection->GetVectorParameterByName(ConfigItem.ParameterName))
+					{
+						AddWatchList(ConfigItem.Collection, ConfigItem.ParameterName, false);
+					}
+				}
+			}
+		}
+		bDirtyEditorSettings = false;
+	}
+
 	ResultView->RebuildList();
+}
+
+/** エディタの環境設定での値変更時のコールバック */
+void SCVTMPCViewerWatch::OnChangedEditorSettings(UCUTDeveloperSettings* Settings, FPropertyChangedEvent& Property)
+{
+	if (!IsValid(Settings))
+	{
+		return;
+	}
+	// const FName PropertyName = Property.GetPropertyName();
+}
+/** エディタ終了時の現在環境の保存 */
+void SCVTMPCViewerWatch::OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings)
+{
+	if (!IsValid(Settings))
+	{
+		return;
+	}
+	// エディター設定に保存しておく
+	for (const FCVTMPCViewerWatchResultShare& Result : ResultList)
+	{
+		// 既に設定が存在しているか
+		if (Settings->CVTMPCViewerItems.FindByPredicate([Result](const FCVTMPCViewerConfig& InConfig)
+				{
+					return (Result->Collection.Get() == InConfig.Collection) && (Result->ParameterName == InConfig.ParameterName);
+				}))
+		{
+			continue;
+		}
+		FCVTMPCViewerConfig NewItem;
+		NewItem.Collection = Result->Collection.Get();
+		NewItem.ParameterName = Result->ParameterName;
+		Settings->CVTMPCViewerItems.Add(NewItem);
+	}
 }
 
 const FText& SCVTMPCViewerWatch::GetHeaderMPCNameText()

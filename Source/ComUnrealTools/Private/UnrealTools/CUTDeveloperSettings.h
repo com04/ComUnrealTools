@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
+#include "ViewTools/CVTMPCViewer/CVTMPCViewerResult.h"
 #include "ViewTools/CVTVolumeRenderer/CVTVolumeRendererItem.h"
 #include "CUTDeveloperSettings.generated.h"
 
@@ -17,9 +18,21 @@ class UCUTDeveloperSettings : public UDeveloperSettings
 public:
 	UCUTDeveloperSettings();
 
-	/* Activate or deactivate the whole plugin. Default: true */
-	UPROPERTY(config, EditAnywhere, Category = "Volume Renderer", meta = (DisplayName = "Default Items"))
+	/*
+	 * savedには保存するけどEditorSettingsに要らない→configのみ
+	 * EditorSettingsにも必要→(config, EditAnywhere, Category = "", meta = (DisplayName = ""))
+	 */
+	 
+	/** MPCViewerのウォッチ欄保存 */
+	UPROPERTY(config)
+	TArray<FCVTMPCViewerConfig> CVTMPCViewerItems;
+
+	/** VolumeRendererのリスト保存 */
+	UPROPERTY(config)
 	TArray<FCVTVolumeRendererItemInfo> CVTVolumeRendererItems;
+
+
+
 
 	/** return "Project" or "Editor" */
 	virtual FName GetContainerName() const override;

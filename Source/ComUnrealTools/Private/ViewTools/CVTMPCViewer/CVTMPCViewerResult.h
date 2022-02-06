@@ -3,9 +3,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CVTMPCViewerResult.generated.h"
 
 class UMaterialParameterCollection;
 class UMaterialParameterCollectionInstance;
+
+
+/**
+ * Config保存用
+ */
+USTRUCT()
+struct FCVTMPCViewerConfig
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere)
+	UMaterialParameterCollection* Collection;
+	UPROPERTY(EditAnywhere)
+	FName ParameterName;
+
+	FCVTMPCViewerConfig()
+	: Collection(nullptr),
+	  ParameterName()
+	{}
+};
 
 /**
  * SCVTMPCViewer list result
