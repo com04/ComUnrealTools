@@ -6,9 +6,12 @@
 
 
 class UBodySetup;
+class ULevelSequence;
 class UMaterial;
 class UMaterialFunction;
 class UMaterialInstance;
+class UMovieSceneFolder;
+class UMovieSceneTrack;
 class UTexture;
 class UWorld;
 
@@ -35,24 +38,48 @@ public:
 	/** M_Default.M_Default -> M_Default */
 	static FString NormalizePathText(const FString& Path);
 
-	
 	/** icon brush name from material */
 	static FName GetIconBrushName(UMaterial* Material, UMaterialInstance* MaterialInstance, UMaterialFunction* MaterialFunction);
-	
+
+	/**
+	 * プロパティを名前で検索する
+	 * "<変数名>=<値>" か "<DisplayName>=<値>" でマッチング。
+	 * Objectや構造体は.区切りでマッチング "<変数名>.<変数名>=<値>"
+	 * @param InSearchStrings 検索する文字列
+	 * @param InSearchObjectProperty 保持しているUObjectの中身も辿って検索するか
+	 * @param InFunction マッチングした際に呼び出される関数
+	 * @retval 見つかった個数
+	 */
+	static void SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction);
+protected:
+	static void SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly);
+
+
+
+public:
 	/** wakeup editor */
 	static void WakeupMaterialEditor(UMaterial* Material, UMaterialInstance* MaterialInstance, UMaterialFunction* MaterialFunction);
-	
 	
 	/** wakeup editor */
 	static void WakeupTextureEditor(UTexture* Texture);
 	
-	
-	
+	/** wakeup editor */
+	static void WakeupSequencerEditor(ULevelSequence* LevelSequence);
+	static void SelectSequencerEditorTracks(const TArray<UMovieSceneTrack*>& InTracks);
+	static void SelectSequencerEditorTracks(const TArray<const UMovieSceneTrack*>& InTracks);
+	static void SelectSequencerEditorFolders(const TArray<UMovieSceneFolder*>& InFolders);
+	static void SelectSequencerEditorFolders(const TArray<const UMovieSceneFolder*>& InFolders);
+	static void SelectSequencerEditorObjects(const TArray<FGuid>& InObjectBindings);
+
+
+
 	/** copy clipboard */
 	static bool ExportClipboard(const FString& TextData);
 
 	/** Export text */
 	static bool ExportTxt(const FString& TitleName, const FString& DefaultFileName, FString TextData, FString FileType=FString(TEXT("")));
+
+
 
 	/** Draw a debug sphere */
 	static void DrawDebugSloidSphereAdvanced(const UWorld* InWorld, FVector const& XAxis, FVector const& YAxis, FVector const& ZAxis, FVector const& Center, float Radius, int32 Segments, float AngleRateY, FColor const& Color, bool bPersistentLines = false, float LifeTime=-1.f, uint8 DepthPriority = 0);
