@@ -49,9 +49,12 @@ public class ComUnrealTools : ModuleRules
 				"EditorStyle",
 				"DesktopPlatform",
 				"MainFrame",
-                "RenderCore",
-                "AppFrameWork",
-                "DeveloperSettings",
+				"RenderCore",
+				"AppFrameWork",
+				"DeveloperSettings",
+				"LevelSequence",
+				"MovieScene",
+				"LevelSequenceEditor",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

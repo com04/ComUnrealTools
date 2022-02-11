@@ -25,6 +25,7 @@ public:
 	const TArray<FAssetData>& GetAssets(int32 InIndex) const;
 	float GetProgress() const;
 	bool IsAsyncLoading() const;
+	void Reset();
 	
 public:
 	FCUTAssetSearcherDispatcher OnSearchEnd;

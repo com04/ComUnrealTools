@@ -111,6 +111,12 @@ bool FCUTAssetSearcher::IsAsyncLoading() const
 	return LoadCounter > 0;
 }
 
+void FCUTAssetSearcher::Reset()
+{
+	SearchPathTokens.Empty();
+	SearchNameTokens.Empty();
+	SearchData.Empty();
+}
 
 /** check SearchPathTokens */
 void FCUTAssetSearcher::CheckSearchPathContent(TArray<FAssetData>* InList)

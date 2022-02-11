@@ -28,6 +28,12 @@ public:
 	static const FName UnrealToolsTabIconBrushName;
 	static const FName MaterialToolsTabIconBrushName;
 	static const FName ViewToolsTabIconBrushName;
+	static const FName SequencerToolsTabIconBrushName;
+
+	static const FName BlueprintIconBrushName;
+	static const FName FolderIconBrushName;
+	static const FName LevelSequenceIconBrushName;
+	static const FName TrackIconBrushName;
 	static const FName MaterialIconBrushName;
 	static const FName MaterialFunctionIconBrushName;
 	static const FName MaterialInstanceIconBrushName;

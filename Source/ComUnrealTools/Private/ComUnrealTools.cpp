@@ -5,6 +5,7 @@
 #include "ComUnrealToolsStyle.h"
 #include "ComUnrealToolsCommands.h"
 #include "MaterialTools/ComMaterialToolsWindow.h"
+#include "SequencerTools/ComSequencerToolsWindow.h"
 #include "ViewTools/ComViewToolsWindow.h"
 #include "UnrealTools/CUTDeveloperSettings.h"
 
@@ -16,6 +17,7 @@
 
 const FName FComUnrealToolsModule::MaterialToolsTabName = FName("ComMaterialTools");
 const FName FComUnrealToolsModule::ViewToolsTabName = FName("ComViewTools");
+const FName FComUnrealToolsModule::SequencerToolsTabName = FName("ComSequencerTools");
 
 #define LOCTEXT_NAMESPACE "FComUnrealToolsModule"
 
@@ -63,6 +65,13 @@ void FComUnrealToolsModule::StartupModule()
 		.SetTooltipText(LOCTEXT("ComViewToolsTooltip", "com View Tools"))
 		.SetIcon(FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::ViewToolsTabIconBrushName))
 		.SetGroup(ComUnrealToolsGroup);
+
+	// Sequencerツール
+	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(SequencerToolsTabName, FOnSpawnTab::CreateRaw(this, &FComUnrealToolsModule::OnSpawnPluginTab))
+		.SetDisplayName(LOCTEXT("ComSequencerToolsTitle", "com Sequencer Tools"))
+		.SetTooltipText(LOCTEXT("ComSequencerToolsTooltip", "com Sequencer Tools"))
+		.SetIcon(FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::SequencerToolsTabIconBrushName))
+		.SetGroup(ComUnrealToolsGroup);
 }
 
 void FComUnrealToolsModule::ShutdownModule()
@@ -73,6 +82,7 @@ void FComUnrealToolsModule::ShutdownModule()
 
 	FComUnrealToolsCommands::Unregister();
 
+	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(SequencerToolsTabName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(ViewToolsTabName);
 	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(MaterialToolsTabName);
 }
@@ -90,6 +100,11 @@ TSharedRef<SDockTab> FComUnrealToolsModule::OnSpawnPluginTab(const FSpawnTabArgs
 	else if (SpawnTabArgs.GetTabId() == FTabId(ViewToolsTabName))
 	{
 		TSharedRef<SComViewToolsWindow> ViewWindow = SNew(SComViewToolsWindow, DockTab, SpawnTabArgs.GetOwnerWindow());
+		DockTab->SetContent(ViewWindow);
+	}
+	else if (SpawnTabArgs.GetTabId() == FTabId(SequencerToolsTabName))
+	{
+		TSharedRef<SComSequencerToolsWindow> ViewWindow = SNew(SComSequencerToolsWindow, DockTab, SpawnTabArgs.GetOwnerWindow());
 		DockTab->SetContent(ViewWindow);
 	}
 
