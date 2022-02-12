@@ -39,6 +39,7 @@ const TArray<FLinearColor> SCVTVolumeRenderer::DefaultColorList =
 	FLinearColor(0.2f, 0.8f, 0.8f),
 	FLinearColor(0.8f, 0.8f, 0.8f),
 };
+float SCVTVolumeRenderer::RenderDistance = 0.0f;
 bool SCVTVolumeRenderer::bDirtyEditorSettings = true;
 
 
@@ -166,6 +167,28 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 					.MinDesiredWidth(50.0f)
 					.OnValueChanged(this, &SCVTVolumeRenderer::OnSpinBoxOneShotDurationChanged)
 				]
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(40.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("RenderDistance", "表示する最大距離"))
+				]
+				
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(SSpinBox<float>)
+					.Value(RenderDistance)
+					.MinValue(0.0f)
+					.MaxSliderValue(100000.0f)
+					.Delta(10.0f)
+					.MinDesiredWidth(70.0f)
+					.OnValueChanged(this, &SCVTVolumeRenderer::OnSpinBoxRenderDistanceChanged)
+				]
 			]
 			
 			// Added Items
@@ -184,7 +207,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 					.IsFocusable(false)
 					.OnGenerateTile(this, &SCVTVolumeRenderer::OnGenerateRow)
 					.ItemHeight(36)
-					.ItemWidth(420)
+					.ItemWidth(470)
 				]
 			]
 		]
@@ -295,6 +318,10 @@ void SCVTVolumeRenderer::OnSpinBoxOneShotDurationChanged(float InValue)
 {
 	OneShotDuration = InValue;
 }
+void SCVTVolumeRenderer::OnSpinBoxRenderDistanceChanged(float InValue)
+{
+	RenderDistance = InValue;
+}
 // -------- Spin Box
 
 // Buttons --------
@@ -348,6 +375,9 @@ void SCVTVolumeRenderer::AddItem(const FCVTVolumeRendererItemInfo& InInfo)
 	NewItem->OnOneShot = [this](TSharedPtr<FCVTVolumeRendererItem> InItem) {
 		this->OnOneShot(InItem);
 	};
+	NewItem->OnRemove = [this](TSharedPtr<FCVTVolumeRendererItem> InItem) {
+		this->OnRemove(InItem);
+	};
 	Items.Add(NewItem);
 }
 // アイテム一つの描画
@@ -375,6 +405,25 @@ void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRender
 			{}
 		};
 		TArray<FGeomtryInfo, TInlineAllocator<32>> GeometryInfos;
+		
+		// 距離カリング
+		if ((RenderDistance > 0.01f) && (InWorld->ViewLocationsRenderedLastFrame.Num() > 0))
+		{
+			const FVector ActorLocation = TargetActor->GetActorLocation();
+			bool bCulling = true;
+			for (const FVector& ViewLocation : InWorld->ViewLocationsRenderedLastFrame)
+			{
+				if (FVector::Distance(ActorLocation, ViewLocation) <= RenderDistance)
+				{
+					bCulling = false;
+					break;
+				}
+			}
+			if (bCulling)
+			{
+				continue;
+			}
+		}
 		
 		// BodySetup を取得
 		{
@@ -415,6 +464,15 @@ void SCVTVolumeRenderer::OnAlwaysON(TSharedPtr<FCVTVolumeRendererItem> Item)
 void SCVTVolumeRenderer::OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item)
 {
 	RequestOneShotItems.AddUnique(Item);
+}
+// Removeが押された時のコールバック
+void SCVTVolumeRenderer::OnRemove(TSharedPtr<FCVTVolumeRendererItem> Item)
+{
+	ItemInfos.RemoveSingle(Item->GetInfo());
+	RequestAlwaysItems.RemoveSingle(Item);
+	RequestOneShotItems.RemoveSingle(Item);
+	Items.RemoveSingle(Item);
+	ItemTileView->RequestListRefresh();
 }
 
 // 既に登録しているクラスか

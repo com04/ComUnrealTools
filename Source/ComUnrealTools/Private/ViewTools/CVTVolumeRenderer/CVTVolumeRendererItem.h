@@ -23,6 +23,10 @@ struct FCVTVolumeRendererItemInfo
 	  DisplayColor(FLinearColor::White)
 	{}
 	
+	bool operator==(const FCVTVolumeRendererItemInfo& Value) const
+	{
+		return (Class == Value.Class) && (DisplayColor == Value.DisplayColor);
+	}
 };
 
 /* added item */
@@ -44,6 +48,7 @@ public:
 	bool IsAlways() const { return bAlways; }
 	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnAlwaysON;
 	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnOneShot;
+	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnRemove;
 private:
 	FCVTVolumeRendererItemInfo ResultInfo;
 	bool bAlways;

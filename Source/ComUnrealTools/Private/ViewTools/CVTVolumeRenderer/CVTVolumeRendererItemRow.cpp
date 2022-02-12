@@ -74,6 +74,16 @@ void SCVTVolumeRendererItemRow::Construct(const FArguments& InArgs, TSharedPtr<F
 					.Size(FVector2D(32.0f, 32.0f))
 				]
 			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SNew(SButton)
+				.Text(LOCTEXT("Remove", "外す"))
+				.OnClicked(this, &SCVTVolumeRendererItemRow::ButtonRemoveClicked)
+				.ButtonColorAndOpacity(FLinearColor(0.6f, 0.6f, 1.0f, 1.0f))
+			]
 		], InOwnerTableView);
 }
 
@@ -132,6 +142,11 @@ FReply SCVTVolumeRendererItemRow::ButtonDispAlwaysClicked()
 FReply SCVTVolumeRendererItemRow::ButtonDispOneShotClicked()
 {
 	Item->OnOneShot(Item);
+	return FReply::Handled();
+}
+FReply SCVTVolumeRendererItemRow::ButtonRemoveClicked()
+{
+	Item->OnRemove(Item);
 	return FReply::Handled();
 }
 

@@ -33,6 +33,8 @@ private:
 	FReply ButtonDispAlwaysClicked();
 	/* １回表示ボタン */
 	FReply ButtonDispOneShotClicked();
+	/* 解除ボタン */
+	FReply ButtonRemoveClicked();
 
 private:
 

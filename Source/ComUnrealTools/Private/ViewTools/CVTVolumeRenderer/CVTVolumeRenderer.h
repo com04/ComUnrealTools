@@ -60,6 +60,7 @@ protected:
 	// Spin Box  --------
 	void OnSpinBoxLineThicknessChanged(float InValue);
 	void OnSpinBoxOneShotDurationChanged(float InValue);
+	void OnSpinBoxRenderDistanceChanged(float InValue);
 	// -------- Spin Box
 	
 	// Buttons --------
@@ -79,6 +80,8 @@ protected:
 	void OnAlwaysON(TSharedPtr<FCVTVolumeRendererItem> Item);
 	// OneShotが押された時のコールバック
 	void OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item);
+	// Removeが押された時のコールバック
+	void OnRemove(TSharedPtr<FCVTVolumeRendererItem> Item);
 	
 	// 既に登録しているクラスか
 	static bool FindClassInItemInfos(const TArray<FCVTVolumeRendererItemInfo>& InItemInfos, TSubclassOf<AActor> InClass);
@@ -101,6 +104,8 @@ private:
 	static float OneShotDuration;
 	static TArray<FCVTVolumeRendererItemInfo> ItemInfos;
 	static const TArray<FLinearColor> DefaultColorList;
+	// 表示距離
+	static float RenderDistance;
 
 	// エディターの環境設定に変更があったか
 	static bool bDirtyEditorSettings;
