@@ -118,7 +118,6 @@ private:
 	// SSpinBox --- End
 	
 	// TextureValue --- Begin
-	void OnTextureValueChanged(const FText& Text);
 	void OnTextureValueCommitted(const FText& Text, ETextCommit::Type CommitType);
 	// TextureValue --- End
 	
