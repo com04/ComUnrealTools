@@ -66,7 +66,6 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 				.HintText(LOCTEXT("FindPath", "Enter level sequence path to find references..."))
 				.InitialText(FText::FromString(SearchPath))
 				.OnTextChanged(this, &SCSTTrackSearcher::OnSearchPathChanged)
-				.OnTextCommitted(this, &SCSTTrackSearcher::OnSearchPathCommitted)
 			]
 		]
 		
@@ -90,7 +89,6 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 				.HintText(LOCTEXT("Find", "Enter track name, texture name to find references..."))
 				.InitialText(FText::FromString(SearchValue))
 				.OnTextChanged(this, &SCSTTrackSearcher::OnSearchTextChanged)
-				.OnTextCommitted(this, &SCSTTrackSearcher::OnSearchTextCommitted)
 			]
 		]
 		
@@ -129,7 +127,6 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 			
 			// Asset Check
 			+ SHorizontalBox::Slot()
-			// .AutoWidth()
 			.MaxWidth(300.f)
 			[
 				SAssignNew(SearchStartButton, SButton)
@@ -229,20 +226,6 @@ void SCSTTrackSearcher::OnSearchPathChanged(const FText& Text)
 	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
 }
 
-/** text commit event */
-void SCSTTrackSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
-{
-	if (LevelSequenceSearcher.IsAsyncLoading())  return;
-	
-	OnSearchPathChanged(Text);
-}
-
-// Search path --- End
-
-
-
-// Search box --- Begin
-
 /** text change event */
 void SCSTTrackSearcher::OnSearchTextChanged(const FText& Text)
 {
@@ -251,15 +234,7 @@ void SCSTTrackSearcher::OnSearchTextChanged(const FText& Text)
 	
 	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
 }
-
-/** text commit event */
-void SCSTTrackSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
-{
-	if (CommitType != ETextCommit::OnEnter) return;
-	if (LevelSequenceSearcher.IsAsyncLoading())  return;
-	
-	OnSearchTextChanged(Text);
-}
+// Search  --- End
 
 void SCSTTrackSearcher::OnCheckBoxUsePropertySearchChanged(ECheckBoxState InValue)
 {

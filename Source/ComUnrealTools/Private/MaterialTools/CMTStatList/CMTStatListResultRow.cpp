@@ -43,46 +43,46 @@ TSharedRef<SWidget> SCMTStatListResultRow::GenerateWidgetForColumn(const FName& 
 					.Text(FText::FromString(Info->Name))
 				];
 	}
-	else if (ColumnName == SCMTStatList::GetHeaderShadingModelTextName())
+	else if (ColumnName == SCMTStatList::GetHeaderDomainTextName())
 	{
 		TSharedRef<SBorder> Border = SNew(SBorder)
 				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBG2BrushName))
+				.HAlign(HAlign_Right)
+				[
+					SNew(STextBlock)
+					.ToolTipText(Info->Tooltip)
+					.Text(FText::FromString(Info->Domain))
+				];
+		BorderColor2List.Add(Border);
+		return Border;
+	}
+	else if (ColumnName == SCMTStatList::GetHeaderShadingModelTextName())
+	{
+		TSharedRef<SBorder> Border = SNew(SBorder)
+				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName))
 				.HAlign(HAlign_Right)
 				[
 					SNew(STextBlock)
 					.ToolTipText(Info->Tooltip)
 					.Text(FText::FromString(Info->ShadingModel))
 				];
-		BorderColor2List.Add(Border);
+		BorderColor1List.Add(Border);
 		return Border;
 	}
 	else if (ColumnName == SCMTStatList::GetHeaderBlendModeTextName())
 	{
 		TSharedRef<SBorder> Border = SNew(SBorder)
-				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName))
+				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBG2BrushName))
 				.HAlign(HAlign_Right)
 				[
 					SNew(STextBlock)
 					.ToolTipText(Info->Tooltip)
 					.Text(Info->BlendMode)
 				];
-		BorderColor1List.Add(Border);
-		return Border;
-	}
-	else if (ColumnName == SCMTStatList::GetHeaderInstructionsTextName())
-	{
-		TSharedRef<SBorder> Border = SNew(SBorder)
-				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBG2BrushName))
-				.HAlign(HAlign_Right)
-				[
-					SNew(STextBlock)
-					.ToolTipText(Info->Tooltip)
-					.Text(FText::AsNumber(Info->Instruction))
-				];
 		BorderColor2List.Add(Border);
 		return Border;
 	}
-	else if (ColumnName == SCMTStatList::GetHeaderTextureNumTextName())
+	else if (ColumnName == SCMTStatList::GetHeaderInstructionsTextName())
 	{
 		TSharedRef<SBorder> Border = SNew(SBorder)
 				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName))
@@ -90,12 +90,12 @@ TSharedRef<SWidget> SCMTStatListResultRow::GenerateWidgetForColumn(const FName& 
 				[
 					SNew(STextBlock)
 					.ToolTipText(Info->Tooltip)
-					.Text(FText::AsNumber(Info->TextureNum))
+					.Text(FText::AsNumber(Info->Instruction))
 				];
 		BorderColor1List.Add(Border);
 		return Border;
 	}
-	else if (ColumnName == SCMTStatList::GetHeaderTextureSizeTextName())
+	else if (ColumnName == SCMTStatList::GetHeaderTextureNumTextName())
 	{
 		TSharedRef<SBorder> Border = SNew(SBorder)
 				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBG2BrushName))
@@ -103,7 +103,33 @@ TSharedRef<SWidget> SCMTStatListResultRow::GenerateWidgetForColumn(const FName& 
 				[
 					SNew(STextBlock)
 					.ToolTipText(Info->Tooltip)
+					.Text(FText::AsNumber(Info->TextureNum))
+				];
+		BorderColor2List.Add(Border);
+		return Border;
+	}
+	else if (ColumnName == SCMTStatList::GetHeaderTextureSizeTextName())
+	{
+		TSharedRef<SBorder> Border = SNew(SBorder)
+				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName))
+				.HAlign(HAlign_Right)
+				[
+					SNew(STextBlock)
+					.ToolTipText(Info->Tooltip)
 					.Text(FText::AsNumber(Info->TextureSize))
+				];
+		BorderColor1List.Add(Border);
+		return Border;
+	}
+	else if (ColumnName == SCMTStatList::GetHeaderRenderAfterDOFTextName())
+	{
+		TSharedRef<SBorder> Border = SNew(SBorder)
+				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBG2BrushName))
+				.HAlign(HAlign_Right)
+				[
+					SNew(STextBlock)
+					.ToolTipText(Info->Tooltip)
+					.Text(FText::FromString(Info->UseRenderAfterDOF ? "use" : "no"))
 				];
 		BorderColor2List.Add(Border);
 		return Border;

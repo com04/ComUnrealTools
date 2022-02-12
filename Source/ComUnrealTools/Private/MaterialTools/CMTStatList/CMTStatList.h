@@ -48,6 +48,8 @@ public:
 
 	static const FText& GetHeaderNameText();
 	static FName GetHeaderNameTextName();
+	static const FText& GetHeaderDomainText();
+	static FName GetHeaderDomainTextName();
 	static const FText& GetHeaderShadingModelText();
 	static FName GetHeaderShadingModelTextName();
 	static const FText& GetHeaderBlendModeText();
@@ -58,6 +60,8 @@ public:
 	static FName GetHeaderTextureNumTextName();
 	static const FText& GetHeaderTextureSizeText();
 	static FName GetHeaderTextureSizeTextName();
+	static const FText& GetHeaderRenderAfterDOFText();
+	static FName GetHeaderRenderAfterDOFTextName();
 	static const FText& GetHeaderPositionOffsetText();
 	static FName GetHeaderPositionOffsetTextName();
 	static const FText& GetHeaderDepthOffsetText();
@@ -75,13 +79,8 @@ private:
 	
 	// Search box --- Begin
 	
-	/** text change event */
-	void OnSearchTextChanged(const FText& Text);
 	/** text commit event */
 	void OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType);
-	
-	/** search match */
-	void MatchTokens();
 	
 	/** search finish callback */
 	void FinishSearch();
@@ -138,16 +137,24 @@ private:
 	// Progress Bar --- End
 	
 	// Button --- Begin
+	// Button --- Begin
+	
+	/** SearchStart clicked event */
+	FReply ButtonSearchStartClicked();
 	
 	/** CopyClipboard clicked event */
 	FReply ButtonCopyClipBoardClicked();
 	
+	/** ExportText clicked event */
+	FReply ButtonExportTextClicked();
+	
 	/** ExportCSV clicked event */
-	FReply ButtonExportCSVClicked();
+	FReply ButtonExportCsvClicked();
 	
 	// Button --- End
 	
-	void AddClipboardText();
+	FString GetClipboardText();
+	void AddClipboardTextFromStatListResult(const TSharedPtr<FCMTStatListResult>& Result, FString* ExportText);
 	
 	
 	/** list sort name. EColumnSortPriority::Max */
@@ -163,11 +170,10 @@ private:
 	FCMTMaterialSearcher MaterialSearcher;
 	
 	
+	TSharedPtr<SButton> SearchStartButton;
 	TSharedPtr<SButton> CopyClipBoardButton;
-	TSharedPtr<SButton> ExportCSVButton;
-	
-	/** Export Text */
-	FString TextClipboard;
+	TSharedPtr<SButton> ExportTextButton;
+	TSharedPtr<SButton> ExportCsvButton;
 	
 	
 	TSharedPtr<SListView<TSharedPtr<FCMTStatListResult>>> ResultView;

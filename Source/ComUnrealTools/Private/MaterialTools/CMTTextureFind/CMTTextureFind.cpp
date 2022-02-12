@@ -21,197 +21,6 @@
 
 
 
-/**
- * get texture in MaterialFunction
- *
- * @Param[out] OutputTextures output texture list
- * @Param[in] TargetMaterial Search Texture in this material
- */
-void GetTextureForMaterialFunction(TArray<UTexture*>* OutputTextures, UMaterialFunction* TargetMaterial)
-{
-	if (TargetMaterial == nullptr)
-	{
-		return;
-	}
-	const TArray<UMaterialExpression*>& MaterialExpressions = TargetMaterial->FunctionExpressions;
-	
-	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
-	{
-		UMaterialExpression* Expression = MaterialExpressions[Index];
-		UTexture* Texture = Cast<UTexture>(Expression->GetReferencedTexture());
-		if (Texture)
-		{
-			OutputTextures->Add(Texture);
-		}
-		else
-		{
-			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
-			if (FunctionCall)
-			{
-				UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(FunctionCall->MaterialFunction);
-				GetTextureForMaterialFunction(OutputTextures, MaterialFunction);
-			}
-		}
-	}
-}
-
-
-/**
- * FCMTTextureFindResultMaterialData deep copy
- */
-
-TSharedPtr<FCMTTextureFindResultMaterialData> DeepCopyMaterialData(TSharedPtr<FCMTTextureFindResultMaterialData> Base)
-{
-	TSharedPtr<FCMTTextureFindResultMaterialData> Ret(new FCMTTextureFindResultMaterialData());
-	Ret->Material = Base->Material;
-	Ret->Function = Base->Function;
-	Ret->MaterialName = Base->MaterialName;
-	if (Base->Child.IsValid())
-	{
-		Ret->Child = DeepCopyMaterialData(Base->Child);
-		Ret->Child->Parent = Ret;
-	}
-	return Ret;
-}
-
-/**
- * search texture in MaterialFunction
- *
- * @Param[in/out] TextureData Search texture data
- * @Param[in] TargetMaterial Search TextureData in this material
- */
-void SearchTexture(FCMTTextureFindResultData* TextureData, UMaterialFunction* TargetMaterial,
-		TSharedPtr<FCMTTextureFindResultMaterialData> StackRoot,
-		TSharedPtr<FCMTTextureFindResultMaterialData> StackEnd)
-{
-	if (TargetMaterial == nullptr)
-	{
-		return;
-	}
-	const TArray<UMaterialExpression*>& MaterialExpressions = TargetMaterial->FunctionExpressions;
-
-	// insert child
-	TSharedPtr<FCMTTextureFindResultMaterialData> Function(new FCMTTextureFindResultMaterialData());
-	Function->Function = TargetMaterial;
-	Function->Parent = StackEnd;
-	StackEnd->Child = Function;
-
-	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
-	{
-		UMaterialExpression* Expression = MaterialExpressions[Index];
-		UTexture* Texture = Cast<UTexture>(Expression->GetReferencedTexture());
-		
-		Function->MaterialName = Expression->GetFName().ToString();
-	
-		if (Texture)
-		{
-			if (GetPathNameSafe(Texture) == TextureData->TexturePath)
-			{
-				// Find!!
-				TextureData->Referenced.Add(DeepCopyMaterialData(StackRoot));
-			}
-		}
-		else
-		{
-			
-			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
-			if (FunctionCall)
-			{
-				// child function
-				SearchTexture(TextureData, Cast<UMaterialFunction>(FunctionCall->MaterialFunction), StackRoot, StackEnd->Child);
-			}
-		}
-	}
-	
-	// remove child
-	StackEnd->Child.Reset();
-}
-
-/**
- * search texture in Material/MaterialInstance
- *
- * @Param[in/out] TextureData Search texture data
- * @Param[in] TargetMaterial Search TextureData in this material
- */
-void SearchTexture(FCMTTextureFindResultData* TextureData, UMaterialInterface* TargetMaterial)
-{
-	if (TargetMaterial == nullptr)
-	{
-		return;
-	}
-	UMaterial* Material = Cast<UMaterial>(TargetMaterial);
-	UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(TargetMaterial);
-	TArray<UMaterialExpression*> MaterialExpressions;
-	
-	if (Material)
-	{
-		Material->GetAllReferencedExpressions(MaterialExpressions, nullptr);
-	
-	}
-	else if (MaterialInstance)
-	{
-		Material = MaterialInstance->GetMaterial();
-		if (Material)
-		{
-			Material->GetAllReferencedExpressions(MaterialExpressions, nullptr);
-		}
-	}
-	
-	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
-	{
-		UMaterialExpression* Expression = MaterialExpressions[Index];
-		UTexture* Texture = Cast<UTexture>(Expression->GetReferencedTexture());
-		if (Texture)
-		{
-			if (GetPathNameSafe(Texture) == TextureData->TexturePath)
-			{
-				TSharedPtr<FCMTTextureFindResultMaterialData> MaterialData(new FCMTTextureFindResultMaterialData());
-				MaterialData->Material = TargetMaterial;
-				MaterialData->MaterialName = Expression->GetFName().ToString();
-				TextureData->Referenced.Add(MaterialData);
-			}
-		}
-		else
-		{
-			
-			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
-			if (FunctionCall)
-			{
-				UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(FunctionCall->MaterialFunction);
-				
-				TSharedPtr<FCMTTextureFindResultMaterialData> Stack(new FCMTTextureFindResultMaterialData);
-				Stack->Material = TargetMaterial;
-				Stack->MaterialName = Expression->GetFName().ToString();
-				SearchTexture(TextureData, MaterialFunction, Stack, Stack);
-			}
-		}
-	}
-}
-
-
-/**
- * Add clip board string from MaterialData.
- */
-void AddClipboardTextFromMaterialData(const TSharedPtr<FCMTTextureFindResultMaterialData>& MaterialData, int32 Indent, FString* ExportText)
-{
-	int32 ChildIndent = Indent;
-	if (MaterialData->Material || MaterialData->Function)
-	{
-		FString MaterialName = MaterialData->Material ? GetPathNameSafe(MaterialData->Material) : GetPathNameSafe(MaterialData->Function);
-
-		*ExportText += FString::Printf(TEXT("%s- %s : %s\n"), *FString::ChrN(Indent, TEXT(' ')), *FCUTUtility::NormalizePathText(MaterialName), *MaterialData->MaterialName);
-		
-		ChildIndent += 2;
-	}
-
-	if (MaterialData->Child.IsValid())
-	{
-		AddClipboardTextFromMaterialData(MaterialData->Child, ChildIndent, ExportText);
-	}
-} 
-
-
-
 
 ////////////////////////////////////
 // SCMTTextureFind
@@ -233,6 +42,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 	const int32 SelectedThumbnailSize = 80;
 	SelectedMaterial = nullptr;
 	SelectedMaterialFunction = nullptr;
+	bResultSearchAsset = true;
 	
 	AssetThumbnailPool = MakeShareable(new FAssetThumbnailPool(1));
 	SelectedThumbnail = MakeShareable(new FAssetThumbnail(nullptr, SelectedThumbnailSize, SelectedThumbnailSize, AssetThumbnailPool));
@@ -258,6 +68,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 			// check box
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SNew(SHorizontalBox)
 			
@@ -284,12 +95,10 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 			[
 				SAssignNew(BoxOneAssetWidget, SHorizontalBox)
 			
-				+ SHorizontalBox::Slot()
-				.MaxWidth(50.f)
-				
 				// Asset Thumbnail
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
+				.Padding(20.0f, 0.0f, 0.0f, 0.0f)
 				[
 					SNew(SBorder)
 					.Padding(4.0f)
@@ -340,6 +149,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 			// check box
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.Padding(10.0f, 4.0f, 0.0f, 0.0f)
 			[
 				SNew(SHorizontalBox)
 			
@@ -366,26 +176,24 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 			[
 				SAssignNew(BoxDirectoryWidget, SHorizontalBox)
 				
-				+ SHorizontalBox::Slot()
-				.MaxWidth(50.f)
-				
 				+SHorizontalBox::Slot()
 				.AutoWidth()
 				.FillWidth(1.0f)
+				.Padding(20.0f, 0.0f, 0.0f, 0.0f)
 				[
 					// text box "Path"
 					SNew(SVerticalBox)
 					+ SVerticalBox::Slot()
 					.AutoHeight()
-					.Padding(0.f, 2.f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SHorizontalBox)
 						+SHorizontalBox::Slot()
 						.AutoWidth()
-						.Padding(0.f, 4.f, 12.f, 0.f)
+						.Padding(0.0f, 4.0f, 12.0f, 0.0f)
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("SearchPath", "Path"))
+							.Text(LOCTEXT("SearchPath", "Search Path"))
 						]
 						
 						+ SHorizontalBox::Slot()
@@ -394,7 +202,6 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 							SNew(SSearchBox)
 							.HintText(LOCTEXT("Find", "Enter material path to find textures..."))
 							.InitialText(FText::FromString(SearchPath))
-							.OnTextChanged(this, &SCMTTextureFind::OnSearchPathChanged)
 							.OnTextCommitted(this, &SCMTTextureFind::OnSearchPathCommitted)
 						]
 					]
@@ -402,15 +209,15 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 					// text box "Name"
 					+ SVerticalBox::Slot()
 					.AutoHeight()
-					.Padding(0.f, 2.f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SHorizontalBox)
 						+SHorizontalBox::Slot()
 						.AutoWidth()
-						.Padding(0.f, 4.f, 12.f, 0.f)
+						.Padding(0.0f, 4.0f, 12.0f, 0.0f)
 						[
 							SNew(STextBlock)
-							.Text(LOCTEXT("SearchName", "Name"))
+							.Text(LOCTEXT("SearchName", "Material Name"))
 						]
 						
 						+ SHorizontalBox::Slot()
@@ -419,7 +226,6 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 							SNew(SSearchBox)
 							.HintText(LOCTEXT("Find", "Enter material name to find textures..."))
 							.InitialText(FText::FromString(SearchName))
-							.OnTextChanged(this, &SCMTTextureFind::OnSearchTextChanged)
 							.OnTextCommitted(this, &SCMTTextureFind::OnSearchTextCommitted)
 						]
 					]
@@ -427,7 +233,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 					// check box "material / material instance"
 					+ SVerticalBox::Slot()
 					.AutoHeight()
-					.Padding(0.f, 2.f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SHorizontalBox)
 					
@@ -452,7 +258,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 					// check box "material function"
 					+ SVerticalBox::Slot()
 					.AutoHeight()
-					.Padding(0.f, 2.f)
+					.Padding(0.0f, 2.0f)
 					[
 						SNew(SHorizontalBox)
 					
@@ -477,46 +283,41 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 			]
 		]
 		
-		+ SVerticalBox::Slot()
-		.MaxHeight(5.f)
-				
 		// Button
 		+ SVerticalBox::Slot()
 		.AutoHeight()
+		.Padding(0.0f, 5.0f, 0.0f, 0.0f)
 		[
 			SNew(SHorizontalBox)
 		
 			// Asset Check
 			+ SHorizontalBox::Slot()
-			.MaxWidth(300.f)
+			.MaxWidth(300.0f)
 			[
 				SAssignNew(AssetCheckButton, SButton)
 				.Text(LOCTEXT("AssetCheckButton", "Asset Check"))
 				.OnClicked(this, &SCMTTextureFind::ButtonAssetCheckClicked)
+				.IsEnabled(false)
 			]
-			
-			+ SHorizontalBox::Slot()
-			.MaxWidth(50.f)
-				
 			// copy clipboard
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(50.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SAssignNew(CopyClipBoardButton, SButton)
 				.Text(LOCTEXT("CopyClipboard", "Copy ClipBoard"))
 				.OnClicked(this, &SCMTTextureFind::ButtonCopyClipBoardClicked)
+				.IsEnabled(false)
 			]
-			
-			+ SHorizontalBox::Slot()
-			.MaxWidth(10.f)
-			
 			// export Text
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SAssignNew(ExportTextButton, SButton)
 				.Text(LOCTEXT("ExportText", "Export Text"))
 				.OnClicked(this, &SCMTTextureFind::ButtonExportTextClicked)
+				.IsEnabled(false)
 			]
 		]
 		
@@ -524,17 +325,12 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 		+ SVerticalBox::Slot()
 		.MaxHeight(500.f)
 		.AutoHeight()
+		.Padding(0.0f, 10.0f, 0.0f, 0.0f)
 		[
 			SAssignNew(ResultBox, SScrollBox)
 		]
 	];
 	
-	AssetCheckButton->SetEnabled(false);
-	CopyClipBoardButton->SetEnabled(false);
-	ExportTextButton->SetEnabled(false);
-	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
-	OnSearchTextCommitted(FText::FromString(SearchName), ETextCommit::OnEnter);
-	CheckAssetCheckButton();
 	if (CheckBoxOneAsset == ECheckBoxState::Checked)
 	{
 		OnCheckOneAssetChanged(ECheckBoxState::Checked);
@@ -543,6 +339,9 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 	{
 		OnCheckDirectoryChanged(ECheckBoxState::Checked);
 	}
+	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(SearchName), ETextCommit::OnEnter);
+	CheckAssetCheckButton();
 }
 
 /** EntryBox asset filtering */
@@ -612,7 +411,6 @@ FReply SCMTTextureFind::ButtonAssetCheckClicked()
 	ResultBox->ClearChildren();
 	CopyClipBoardButton->SetEnabled(false);
 	ExportTextButton->SetEnabled(false);
-	TextClipboard = FString();
 
 	if (CheckBoxOneAsset == ECheckBoxState::Checked)
 	{
@@ -620,12 +418,20 @@ FReply SCMTTextureFind::ButtonAssetCheckClicked()
 		TArray<UMaterialFunction*> MaterialFunctions;
 		Materials.Add(SelectedMaterial);
 		MaterialFunctions.Add(SelectedMaterialFunction);
+		bResultSearchAsset = true;
 		SearchTextureInMaterial(Materials, MaterialFunctions);
 	}
 	else
 	{
 		bool CheckMaterial = CheckBoxDirectoryMaterial == ECheckBoxState::Checked;
 		bool CheckMaterialFunction = CheckBoxDirectoryMaterialFunction == ECheckBoxState::Checked;
+		
+		// search path parse
+		FCUTUtility::SplitStringTokens(SearchPath, &SearchPathTokens);
+		
+		// search text parse
+		FCUTUtility::SplitStringTokens(SearchName, &SearchTokens);
+		
 		MaterialSearcher.SearchStart(SearchPathTokens, SearchTokens,
 				true,
 				CheckMaterial, CheckMaterial,
@@ -638,7 +444,7 @@ FReply SCMTTextureFind::ButtonAssetCheckClicked()
 /* CopyClipboard clicked event */
 FReply SCMTTextureFind::ButtonCopyClipBoardClicked()
 {
-	FCUTUtility::ExportClipboard(TextClipboard);
+	FCUTUtility::ExportClipboard(ClipboardText);
 	
 	return FReply::Handled();
 }
@@ -646,38 +452,22 @@ FReply SCMTTextureFind::ButtonCopyClipBoardClicked()
 /* ExportText clicked event */
 FReply SCMTTextureFind::ButtonExportTextClicked()
 {
-	FCUTUtility::ExportTxt("TextureFind", "CMTTextureFind.txt", TextClipboard, TEXT("Text |*.txt"));
+	FCUTUtility::ExportTxt("TextureFind", "CMTTextureFind.txt", ClipboardText, TEXT("Text |*.txt"));
 	
 	return FReply::Handled();
 }
 
 /** text change event */
-void SCMTTextureFind::OnSearchPathChanged(const FText& Text)
-{
-	SearchPath = Text.ToString();
-}
-/** text commit event */
 void SCMTTextureFind::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	if (MaterialSearcher.IsAsyncLoading())  return;
-	
-	// search path parse
-	FCUTUtility::SplitStringTokens(SearchPath, &SearchPathTokens);
+	SearchPath = Text.ToString();
+	CheckAssetCheckButton();
 }
-
 /** text change event */
-void SCMTTextureFind::OnSearchTextChanged(const FText& Text)
-{
-	SearchName = Text.ToString();
-}
-/** text commit event */
 void SCMTTextureFind::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	// if (CommitType != ETextCommit::OnEnter) return;
-	if (MaterialSearcher.IsAsyncLoading())  return;
-	
-	// search text parse
-	FCUTUtility::SplitStringTokens(SearchName, &SearchTokens);
+	SearchName = Text.ToString();
+	CheckAssetCheckButton();
 }
 
 /** "Check one asset" checkbox changed callback */
@@ -726,6 +516,7 @@ void SCMTTextureFind::CheckAssetCheckButton()
 	}
 	else
 	{
+		Enable = (!SearchPath.IsEmpty() && !SearchName.IsEmpty());
 	}
 	AssetCheckButton->SetEnabled(Enable);
 }
@@ -770,6 +561,7 @@ void SCMTTextureFind::FinishSearch()
 		Materials.Add(MaterialInstance);
 	}
 	
+	bResultSearchAsset = false;
 	SearchTextureInMaterial(Materials, MaterialFunctions);
 }
 
@@ -818,6 +610,16 @@ void SCMTTextureFind::SearchTextureInMaterial(TArray<UMaterialInterface*>& Targe
 		}
 	}
 	
+	if (bResultSearchAsset)
+	{
+		ClipboardText = FString::Printf(TEXT("Search Asset: %s\n\n"), *FCUTUtility::NormalizePathText(GetObjectPath()));
+	}
+	else
+	{
+		ClipboardText = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
+		ClipboardText += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchName);
+	}
+	
 	for (auto It = TargetMaterialFunction.CreateIterator() ; It ; ++It)
 	{
 		if (*It == nullptr)
@@ -843,18 +645,6 @@ void SCMTTextureFind::SearchTextureInMaterial(TArray<UMaterialInterface*>& Targe
 				Textures.AddUnique(*ItTexture);
 			}
 		}
-	}
-	
-	
-	// clipboard text
-	if (CheckBoxOneAsset == ECheckBoxState::Checked)
-	{
-		TextClipboard = FString::Printf(TEXT("Search Asset: %s\n\n"), *FCUTUtility::NormalizePathText(GetObjectPath()));
-	}
-	else
-	{
-		TextClipboard = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-		TextClipboard += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchName);
 	}
 	
 	// find used asset
@@ -899,18 +689,206 @@ void SCMTTextureFind::SearchTextureInMaterial(TArray<UMaterialInterface*>& Targe
 		];
 	}
 }
+/**
+ * search texture in Material/MaterialInstance
+ *
+ * @Param[in/out] TextureData Search texture data
+ * @Param[in] TargetMaterial Search TextureData in this material
+ */
+void SCMTTextureFind::SearchTexture(FCMTTextureFindResultData* TextureData, UMaterialInterface* TargetMaterial)
+{
+	if (TargetMaterial == nullptr)
+	{
+		return;
+	}
+	UMaterial* Material = Cast<UMaterial>(TargetMaterial);
+	UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(TargetMaterial);
+	TArray<UMaterialExpression*> MaterialExpressions;
+	
+	if (Material)
+	{
+		Material->GetAllReferencedExpressions(MaterialExpressions, nullptr);
+	
+	}
+	else if (MaterialInstance)
+	{
+		Material = MaterialInstance->GetMaterial();
+		if (Material)
+		{
+			Material->GetAllReferencedExpressions(MaterialExpressions, nullptr);
+		}
+	}
+	
+	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
+	{
+		UMaterialExpression* Expression = MaterialExpressions[Index];
+		UTexture* Texture = Cast<UTexture>(Expression->GetReferencedTexture());
+		if (Texture)
+		{
+			if (GetPathNameSafe(Texture) == TextureData->TexturePath)
+			{
+				TSharedPtr<FCMTTextureFindResultMaterialData> MaterialData(new FCMTTextureFindResultMaterialData());
+				MaterialData->Material = TargetMaterial;
+				MaterialData->MaterialName = Expression->GetFName().ToString();
+				TextureData->Referenced.Add(MaterialData);
+			}
+		}
+		else
+		{
+			
+			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
+			if (FunctionCall)
+			{
+				UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(FunctionCall->MaterialFunction);
+				
+				TSharedPtr<FCMTTextureFindResultMaterialData> Stack(new FCMTTextureFindResultMaterialData);
+				Stack->Material = TargetMaterial;
+				Stack->MaterialName = Expression->GetFName().ToString();
+				SearchTexture(TextureData, MaterialFunction, Stack, Stack);
+			}
+		}
+	}
+}
+/**
+ * search texture in MaterialFunction
+ *
+ * @Param[in/out] TextureData Search texture data
+ * @Param[in] TargetMaterial Search TextureData in this material
+ */
+void SCMTTextureFind::SearchTexture(FCMTTextureFindResultData* TextureData, UMaterialFunction* TargetMaterial,
+		TSharedPtr<FCMTTextureFindResultMaterialData> StackRoot,
+		TSharedPtr<FCMTTextureFindResultMaterialData> StackEnd)
+{
+	if (TargetMaterial == nullptr)
+	{
+		return;
+	}
+	const TArray<UMaterialExpression*>& MaterialExpressions = TargetMaterial->FunctionExpressions;
+
+	// insert child
+	TSharedPtr<FCMTTextureFindResultMaterialData> Function(new FCMTTextureFindResultMaterialData());
+	Function->Function = TargetMaterial;
+	Function->Parent = StackEnd;
+	StackEnd->Child = Function;
+
+	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
+	{
+		UMaterialExpression* Expression = MaterialExpressions[Index];
+		UTexture* Texture = Cast<UTexture>(Expression->GetReferencedTexture());
+		
+		Function->MaterialName = Expression->GetFName().ToString();
+	
+		if (Texture)
+		{
+			if (GetPathNameSafe(Texture) == TextureData->TexturePath)
+			{
+				// Find!!
+				TextureData->Referenced.Add(DeepCopyMaterialData(StackRoot));
+			}
+		}
+		else
+		{
+			
+			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
+			if (FunctionCall)
+			{
+				// child function
+				SearchTexture(TextureData, Cast<UMaterialFunction>(FunctionCall->MaterialFunction), StackRoot, StackEnd->Child);
+			}
+		}
+	}
+	
+	// remove child
+	StackEnd->Child.Reset();
+}
+/**
+ * FCMTTextureFindResultMaterialData deep copy
+ */
+
+TSharedPtr<FCMTTextureFindResultMaterialData> SCMTTextureFind::DeepCopyMaterialData(TSharedPtr<FCMTTextureFindResultMaterialData> Base)
+{
+	TSharedPtr<FCMTTextureFindResultMaterialData> Ret(new FCMTTextureFindResultMaterialData());
+	Ret->Material = Base->Material;
+	Ret->Function = Base->Function;
+	Ret->MaterialName = Base->MaterialName;
+	if (Base->Child.IsValid())
+	{
+		Ret->Child = DeepCopyMaterialData(Base->Child);
+		Ret->Child->Parent = Ret;
+	}
+	return Ret;
+}
+
+
+/**
+ * get texture in MaterialFunction
+ *
+ * @Param[out] OutputTextures output texture list
+ * @Param[in] TargetMaterial Search Texture in this material
+ */
+void SCMTTextureFind::GetTextureForMaterialFunction(TArray<UTexture*>* OutputTextures, UMaterialFunction* TargetMaterial)
+{
+	if (TargetMaterial == nullptr)
+	{
+		return;
+	}
+	const TArray<UMaterialExpression*>& MaterialExpressions = TargetMaterial->FunctionExpressions;
+	
+	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
+	{
+		UMaterialExpression* Expression = MaterialExpressions[Index];
+		UTexture* Texture = Cast<UTexture>(Expression->GetReferencedTexture());
+		if (Texture)
+		{
+			OutputTextures->Add(Texture);
+		}
+		else
+		{
+			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
+			if (FunctionCall)
+			{
+				UMaterialFunction* MaterialFunction = Cast<UMaterialFunction>(FunctionCall->MaterialFunction);
+				GetTextureForMaterialFunction(OutputTextures, MaterialFunction);
+			}
+		}
+	}
+}
+
 
 /** Export Text */
 void SCMTTextureFind::AddClipboardText(const FCMTTextureFindResultData& TextureData)
 {
-	TextClipboard += FString::Printf(TEXT("[Texture] %s\n"), *FCUTUtility::NormalizePathText(TextureData.TexturePath));
+	ClipboardText += FString::Printf(TEXT("[Texture] %s\n"), *FCUTUtility::NormalizePathText(TextureData.TexturePath));
 	
 	for (auto It = TextureData.Referenced.CreateConstIterator() ; It ; ++It)
 	{
-		AddClipboardTextFromMaterialData(*It, 2, &TextClipboard);
-		TextClipboard += FString("\n");
+		AddClipboardTextFromMaterialData(*It, 2, &ClipboardText);
 	}
+	ClipboardText += FString("\n");
 }
+
+
+/**
+ * Add clip board string from MaterialData.
+ */
+void SCMTTextureFind::AddClipboardTextFromMaterialData(const TSharedPtr<FCMTTextureFindResultMaterialData>& MaterialData, int32 Indent, FString* ExportText)
+{
+	int32 ChildIndent = Indent;
+	if (MaterialData->Material || MaterialData->Function)
+	{
+		FString MaterialName = MaterialData->Material ? GetPathNameSafe(MaterialData->Material) : GetPathNameSafe(MaterialData->Function);
+
+		*ExportText += FString::Printf(TEXT("%s- %s : %s\n"), *FString::ChrN(Indent, TEXT(' ')), *FCUTUtility::NormalizePathText(MaterialName), *MaterialData->MaterialName);
+		
+		ChildIndent += 2;
+	}
+
+	if (MaterialData->Child.IsValid())
+	{
+		AddClipboardTextFromMaterialData(MaterialData->Child, ChildIndent, ExportText);
+	}
+} 
+
 
 
 #undef LOCTEXT_NAMESPACE

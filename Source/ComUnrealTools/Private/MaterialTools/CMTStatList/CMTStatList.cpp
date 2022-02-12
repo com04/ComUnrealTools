@@ -25,24 +25,6 @@
 
 
 
-/**
- * Add clip board string from Result.
- */
-void AddClipboardTextFromStatListResult(const TSharedPtr<FCMTStatListResult>& Result, FString* ExportText)
-{
-	*ExportText += FString::Printf(TEXT("%s,%s,%s,%s,%u,%d,%u,%s,%s,%s\n"),
-			*Result->Name,
-			*Result->Domain,
-			*Result->ShadingModel,
-			*Result->BlendMode.ToString(),
-			Result->Instruction,
-			Result->TextureNum,
-			Result->TextureSize,
-			Result->UsePositionOffset > 0 ? TEXT("True") : TEXT("False"),
-			Result->UseDepthOffset > 0 ? TEXT("True") : TEXT("False"),
-			Result->UseRefraction > 0 ? TEXT("True") : TEXT("False"));
-}
-
 
 ////////////////////////////////////
 // SCMTStatList
@@ -58,6 +40,15 @@ const FText& SCMTStatList::GetHeaderNameText()
 FName SCMTStatList::GetHeaderNameTextName()
 {
 	return FName(*GetHeaderNameText().ToString());
+}
+const FText& SCMTStatList::GetHeaderDomainText()
+{
+	static const FText HeaderDomainText(LOCTEXT("HeaderDomain", "Domain"));
+	return HeaderDomainText;
+}
+FName SCMTStatList::GetHeaderDomainTextName()
+{
+	return FName(*GetHeaderDomainText().ToString());
 }
 const FText& SCMTStatList::GetHeaderShadingModelText()
 {
@@ -103,6 +94,15 @@ const FText& SCMTStatList::GetHeaderTextureSizeText()
 FName SCMTStatList::GetHeaderTextureSizeTextName()
 {
 	return FName(*GetHeaderTextureSizeText().ToString());
+}
+const FText& SCMTStatList::GetHeaderRenderAfterDOFText()
+{
+	static const FText HeaderRenderAfterDOFText(LOCTEXT("HeaderRenderAfterDOF", "RenderAfterDOF"));
+	return HeaderRenderAfterDOFText;
+}
+FName SCMTStatList::GetHeaderRenderAfterDOFTextName()
+{
+	return FName(*GetHeaderRenderAfterDOFText().ToString());
 }
 const FText& SCMTStatList::GetHeaderPositionOffsetText()
 {
@@ -155,11 +155,13 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 		.ResizeMode(ESplitterResizeMode::FixedSize)
 		
 		+ CreateHeaderColumn(GetHeaderNameText(), 120)
+		+ CreateHeaderColumn(GetHeaderDomainText(), 30)
 		+ CreateHeaderColumn(GetHeaderShadingModelText(), 30)
 		+ CreateHeaderColumn(GetHeaderBlendModeText(), 30)
 		+ CreateHeaderColumn(GetHeaderInstructionsText(), 30)
-		+ CreateHeaderColumn(GetHeaderTextureNumText(), 40)
-		+ CreateHeaderColumn(GetHeaderTextureSizeText(), 50)
+		+ CreateHeaderColumn(GetHeaderTextureNumText(), 30)
+		+ CreateHeaderColumn(GetHeaderTextureSizeText(), 30)
+		+ CreateHeaderColumn(GetHeaderRenderAfterDOFText(), 30)
 		+ CreateHeaderColumn(GetHeaderPositionOffsetText(), 30)
 		+ CreateHeaderColumn(GetHeaderDepthOffsetText(), 30)
 		+ CreateHeaderColumn(GetHeaderRefractionText(), 30)
@@ -172,15 +174,15 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 		// Search box
 		+ SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0.f, 4.f)
+		.Padding(0.0f, 4.0f)
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(0.f, 4.f, 12.f, 0.f)
+			.Padding(0.0f, 4.0f, 12.0f, 0.0f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("SearchPath", "Path"))
+				.Text(LOCTEXT("SearchPath", "Search Path"))
 			]
 			+SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -188,7 +190,6 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("StatListFind", "Enter material path to find references..."))
 				.InitialText(FText::FromString(SearchValue))
-				.OnTextChanged(this, &SCMTStatList::OnSearchTextChanged)
 				.OnTextCommitted(this, &SCMTStatList::OnSearchTextCommitted)
 			]
 		]
@@ -196,47 +197,74 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 		// CheckBox material instance
 		+SVerticalBox::Slot()
 		.AutoHeight()
+		.Padding(10.0f, 4.0f, 0.0f, 0.0f)
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(0.f, 4.f, 12.f, 0.f)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("CheckMaterialInstance", "check material instance"))
-			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
+			.VAlign(VAlign_Center)
 			[
 				SNew(SCheckBox)
 				.IsChecked(CheckMaterialInstance)
 				.OnCheckStateChanged(this, &SCMTStatList::OnCheckMaterialInstanceChanged)
 			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("CheckMaterialInstance", "check material instance"))
+			]
+		]
+		
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+		[
+			SNew(SHorizontalBox)
 			
+			// Asset Check
 			+ SHorizontalBox::Slot()
-			.MaxWidth(50.f)
-				
+			.MaxWidth(300.f)
+			[
+				SAssignNew(SearchStartButton, SButton)
+				.Text(LOCTEXT("SearchStartButton", "Search Start"))
+				.OnClicked(this, &SCMTStatList::ButtonSearchStartClicked)
+				.IsEnabled(false)
+			]
 			// copy clipboard
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(50.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SAssignNew(CopyClipBoardButton, SButton)
 				.Text(LOCTEXT("CopyClipboard", "Copy ClipBoard"))
 				.OnClicked(this, &SCMTStatList::ButtonCopyClipBoardClicked)
+				.IsEnabled(false)
 			]
-			
-			+ SHorizontalBox::Slot()
-			.MaxWidth(10.f)
-			
 			// export Text
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 			[
-				SAssignNew(ExportCSVButton, SButton)
-				.Text(LOCTEXT("ExportCSV", "Export CSV"))
-				.OnClicked(this, &SCMTStatList::ButtonExportCSVClicked)
+				SAssignNew(ExportTextButton, SButton)
+				.Text(LOCTEXT("ExportText", "Export Text"))
+				.OnClicked(this, &SCMTStatList::ButtonExportTextClicked)
+				.IsEnabled(false)
+			]
+			// export csv
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SAssignNew(ExportCsvButton, SButton)
+				.Text(LOCTEXT("ExportCsv", "Export CSV"))
+				.OnClicked(this, &SCMTStatList::ButtonExportCsvClicked)
+				.IsEnabled(false)
 			]
 		]
+		
+		
 		
 		// Result list
 		+ SVerticalBox::Slot()
@@ -265,6 +293,7 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 		]
 	];
 	
+	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
 }
 
 FReply SCMTStatList::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) 
@@ -277,38 +306,12 @@ FReply SCMTStatList::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InK
 
 // Search box --- Begin
 
-/** text change event */
-void SCMTStatList::OnSearchTextChanged(const FText& Text)
-{
-	SearchValue = Text.ToString();
-}
-
 /** text commit event */
 void SCMTStatList::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	if (CommitType != ETextCommit::OnEnter) return;
-	if (MaterialSearcher.IsAsyncLoading())  return;
+	SearchValue = Text.ToString();
 	
-	// search text parse
-	FCUTUtility::SplitStringTokens(SearchValue, &SearchTokens);
-
-	// last result clear
-	ResultList.Empty();
-	
-	// search
-	if (SearchTokens.Num() > 0)
-	{
-		MatchTokens();
-	}
-}
-
-
-void SCMTStatList::MatchTokens()
-{
-	MaterialSearcher.SearchStart(SearchTokens, TArray<FString>(),
-			true,
-			true, (CheckMaterialInstance == ECheckBoxState::Checked),
-			false);
+	SearchStartButton->SetEnabled(!SearchValue.IsEmpty());
 }
 
 void SCMTStatList::FinishSearch()
@@ -351,9 +354,21 @@ void SCMTStatList::FinishSearch()
 		ResultList.Add(Result);
 	}
 	
+	if (ResultList.Num() <= 0)
+	{
+		CopyClipBoardButton->SetEnabled(false);
+		ExportTextButton->SetEnabled(false);
+		ExportCsvButton->SetEnabled(false);
+	}
+	else
+	{
+		CopyClipBoardButton->SetEnabled(true);
+		ExportTextButton->SetEnabled(true);
+		ExportCsvButton->SetEnabled(true);
+	}
+	
 	// search finish. clear variable.
 	ResultView->RebuildList();
-	SearchTokens.Empty();
 	SortList();
 }
 
@@ -460,6 +475,7 @@ void SCMTStatList::SetupMaterialResult(TSharedPtr<FCMTStatListResult>& Result, U
 	}
 	Result->Material = SelfMaterial;
 	Result->Instruction = 0;
+	Result->UseRenderAfterDOF = 0;
 	Result->UsePositionOffset = 0;
 	Result->UseDepthOffset = 0;
 	Result->UseRefraction = 0;
@@ -558,6 +574,7 @@ void SCMTStatList::SetupMaterialResult(TSharedPtr<FCMTStatListResult>& Result, U
 				}
 			}
 			
+			Result->UseRenderAfterDOF = MasterMaterial->bEnableSeparateTranslucency ? 1 : 0;
 			Result->UsePositionOffset = MaterialShaderMap->UsesWorldPositionOffset() ? 1 : 0;
 			Result->UseDepthOffset = MaterialShaderMap->UsesPixelDepthOffset() ? 1 : 0;
 			Result->UseRefraction = (MaterialResource->IsDistorted()) ? 1 : 0;
@@ -677,8 +694,6 @@ void SCMTStatList::SortList()
 	
 	// widget rebuild
 	ResultView->RebuildList();
-	
-	AddClipboardText();
 }
 
 int32 SCMTStatList::CheckSortResult(const TSharedPtr<FCMTStatListResult>& InsertResult,
@@ -698,6 +713,10 @@ int32 SCMTStatList::CheckSortResult(const TSharedPtr<FCMTStatListResult>& Insert
 		{
 			return 0;
 		}
+	}
+	else if (SortName == GetHeaderDomainTextName())
+	{
+		return InsertResult->Domain.Compare(CheckResult->Domain, ESearchCase::CaseSensitive);
 	}
 	else if (SortName == GetHeaderShadingModelTextName())
 	{
@@ -744,6 +763,21 @@ int32 SCMTStatList::CheckSortResult(const TSharedPtr<FCMTStatListResult>& Insert
 			return -1;
 		}
 		else if (InsertResult->TextureSize > CheckResult->TextureSize)
+		{
+			return 1;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else if (SortName == GetHeaderRenderAfterDOFTextName())
+	{
+		if (InsertResult->UseRenderAfterDOF < CheckResult->UseRenderAfterDOF)
+		{
+			return -1;
+		}
+		else if (InsertResult->UseRenderAfterDOF > CheckResult->UseRenderAfterDOF)
 		{
 			return 1;
 		}
@@ -825,31 +859,82 @@ TOptional<float> SCMTStatList::GetProgressBarPercent() const
 
 // Progress Bar --- End
 
+/** SearchStart clicked event */
+FReply SCMTStatList::ButtonSearchStartClicked()
+{
+	// search text parse
+	FCUTUtility::SplitStringTokens(SearchValue, &SearchTokens);
+
+	// last result clear
+	ResultList.Empty();
+	
+	// search
+	if (SearchTokens.Num() > 0)
+	{
+		MaterialSearcher.SearchStart(SearchTokens, TArray<FString>(),
+				true,
+				true, (CheckMaterialInstance == ECheckBoxState::Checked),
+				false);
+	}
+	return FReply::Handled();
+}
+
 /* CopyClipboard clicked event */
 FReply SCMTStatList::ButtonCopyClipBoardClicked()
 {
-	FCUTUtility::ExportClipboard(TextClipboard);
+	FString Clipboard = GetClipboardText();
+	FCUTUtility::ExportClipboard(Clipboard);
 	
+	return FReply::Handled();
+}
+
+/** ExportText clicked event */
+FReply SCMTStatList::ButtonExportTextClicked()
+{
+	FString Clipboard = GetClipboardText();
+	FCUTUtility::ExportTxt("StatList", "CMTStatList.txt", Clipboard, TEXT("Text |*.txt"));
 	return FReply::Handled();
 }
 
 /* ExportCSV clicked event */
-FReply SCMTStatList::ButtonExportCSVClicked()
+FReply SCMTStatList::ButtonExportCsvClicked()
 {
-	FCUTUtility::ExportTxt("StatList", "CMTStatList.csv", TextClipboard, TEXT("CSV |*.csv"));
+	FString Clipboard = GetClipboardText();
+	FCUTUtility::ExportTxt("StatList", "CMTStatList.csv", Clipboard, TEXT("CSV |*.csv"));
 	
 	return FReply::Handled();
 }
 
-void SCMTStatList::AddClipboardText()
+FString SCMTStatList::GetClipboardText()
 {
-	TextClipboard = FString::Printf(TEXT("Search Path: %s\n"), *SearchValue);
-	TextClipboard += FString::Printf(TEXT("Name,Domain,ShadingModel,BlendMode,Instruction,TextureNum,TextureSize,UsePositionOffset,UseDepthOffset,UseRefraction\n"));
+	FString RetString;
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchValue);
+	RetString += FString::Printf(TEXT("Name,Domain,ShadingModel,BlendMode,Instruction,TextureNum,TextureSize,UseRenderAfterDOF,UsePositionOffset,UseDepthOffset,UseRefraction\n"));
 	
 	for (auto It = ResultList.CreateConstIterator() ; It ; ++It)
 	{
-		AddClipboardTextFromStatListResult(*It, &TextClipboard);
+		AddClipboardTextFromStatListResult(*It, &RetString);
 	}
+	return RetString;
+}
+
+/**
+ * Add clip board string from Result.
+ */
+void SCMTStatList::AddClipboardTextFromStatListResult(const TSharedPtr<FCMTStatListResult>& Result, FString* ExportText)
+{
+	*ExportText += FString::Printf(TEXT("%s,%s,%s,%s,%u,%d,%u,%s,%s,%s,%s\n"),
+			*Result->Name,
+			*Result->Domain,
+			*Result->ShadingModel,
+			*Result->BlendMode.ToString(),
+			Result->Instruction,
+			Result->TextureNum,
+			Result->TextureSize,
+			Result->UseRenderAfterDOF > 0 ? TEXT("True") : TEXT("False"),
+			Result->UsePositionOffset > 0 ? TEXT("True") : TEXT("False"),
+			Result->UseDepthOffset > 0 ? TEXT("True") : TEXT("False"),
+			Result->UseRefraction > 0 ? TEXT("True") : TEXT("False"));
 }
 
 

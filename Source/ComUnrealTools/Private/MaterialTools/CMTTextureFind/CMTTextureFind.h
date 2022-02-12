@@ -22,6 +22,7 @@ class UMaterialFunction;
 class UMaterialInterface;
 
 class FCMTTextureFindResultData;
+class FCMTTextureFindResultMaterialData;
 
 /**
  * Implements the launcher application
@@ -75,15 +76,9 @@ protected:
 	// Search box --- Begin
 	
 	/** text change event */
-	void OnSearchPathChanged(const FText& Text);
-	/** text commit event */
 	void OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType);
-	
 	/** text change event */
-	void OnSearchTextChanged(const FText& Text);
-	/** text commit event */
 	void OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType);
-	
 	// Search box --- End
 	
 	
@@ -110,10 +105,18 @@ private:
 	/** search  material */
 	void SearchTextureInMaterial(TArray<UMaterialInterface*>& TargetMaterial,
 			TArray<UMaterialFunction*>& TargetMaterialFunction);
+	void SearchTexture(FCMTTextureFindResultData* TextureData, UMaterialInterface* TargetMaterial);
+	void SearchTexture(FCMTTextureFindResultData* TextureData, UMaterialFunction* TargetMaterial,
+		TSharedPtr<FCMTTextureFindResultMaterialData> StackRoot,
+		TSharedPtr<FCMTTextureFindResultMaterialData> StackEnd);
+	TSharedPtr<FCMTTextureFindResultMaterialData> DeepCopyMaterialData(TSharedPtr<FCMTTextureFindResultMaterialData> Base);
+	void GetTextureForMaterialFunction(TArray<UTexture*>* OutputTextures, UMaterialFunction* TargetMaterial);
 	
 	
 	/** collect clipboard text */
+	FString GetClipboardText();
 	void AddClipboardText(const FCMTTextureFindResultData& TextureData);
+	void AddClipboardTextFromMaterialData(const TSharedPtr<FCMTTextureFindResultMaterialData>& MaterialData, int32 Indent, FString* ExportText);
 	
 private:
 	
@@ -149,9 +152,10 @@ private:
 	/** material search utility class */
 	FCMTMaterialSearcher MaterialSearcher;
 	
-	/** Export Text */
-	FString TextClipboard;
+	/** 検索結果はアセット検索か。falseでディレクトリ検索	*/
+	bool bResultSearchAsset;
 	
+	FString ClipboardText;
 	
 	/** search path text */
 	static FString SearchPath;

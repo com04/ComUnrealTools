@@ -45,7 +45,7 @@ public:
 	FName	GetBackgroundBrushName() const;
 
 	/** result display text */
-	FText GetDisplayString() const;
+	FText GetDisplayText() const;
 
 	/** 値文字 */
 	FText GetValueText() const;

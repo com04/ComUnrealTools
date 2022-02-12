@@ -67,7 +67,7 @@ FCMTNodeSearcherResult::FCMTNodeSearcherResult(const FText& InDisplayText, TShar
 {
 	if (Expression)
 	{
-		CommentText = Expression->Desc;
+		CommentText = FText::FromString(Expression->Desc);
 	}
 }
 FCMTNodeSearcherResult::FCMTNodeSearcherResult(const FText& InDisplayText, TSharedPtr<FCMTNodeSearcherResult> InParent, UTexture* InTexture)
@@ -190,13 +190,13 @@ FName	FCMTNodeSearcherResult::GetBackgroundBrushName() const
 	return BrushName;
 }
 
-FString FCMTNodeSearcherResult::GetCommentText() const
+FText FCMTNodeSearcherResult::GetCommentText() const
 {
 	return CommentText;
 }
 
 
-FText FCMTNodeSearcherResult::GetDisplayString() const
+FText FCMTNodeSearcherResult::GetDisplayText() const
 {
 	return DisplayText;
 }

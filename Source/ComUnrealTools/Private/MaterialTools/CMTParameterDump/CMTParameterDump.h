@@ -97,8 +97,8 @@ protected:
 	
 	// -------- Result Tree
 	
-	void SetupClipboardText();
-	void SetupCsvText();
+	FString GetClipboardText();
+	FString GetClipboardCsv();
 
 private:
 	
@@ -122,10 +122,6 @@ private:
 	
 	/** チェックした時点のマテリアル名 */
 	FString CheckMaterialName;
-	/** Export Text */
-	FString TextClipboard;
-	/** Export Csv */
-	FString CsvClipboard;
 	
 	/** "disp override only" result */
 	static ECheckBoxState DispOverrideOnlyState;

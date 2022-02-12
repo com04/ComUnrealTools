@@ -17,6 +17,9 @@ typedef TSharedPtr<class FCMTParameterSearcherResult> FCMTParameterSearcherResul
 typedef STreeView<FCMTParameterSearcherResultShare>  SCMTParameterSearcherTreeViewType;
 struct FAssetData;
 class UMaterialExpressionComment;
+class SBox;
+class SButton;
+class SCheckBox;
 
 /** Vectorパラメーターのマッチ条件 */
 UENUM()
@@ -79,30 +82,14 @@ private:
 		StaticSwitch,
 	};
 	
-	// Search path --- Begin
-	
-	/** text change event */
-	void OnSearchPathChanged(const FText& Text);
-	/** text commit event */
+	// Search  --- Begin
 	void OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType);
-	
-	// Search path --- End
-	
-	
-	// Search box --- Begin
-	
-	/** text change event */
-	void OnSearchTextChanged(const FText& Text);
-	/** text commit event */
 	void OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType);
-	// Search box --- End
+	// Search  --- End
 	
 	
 	/** Search */
 	void SearchStart();
-	
-	/** search match */
-	void MatchTokens();
 	
 	/** search finish callback */
 	void FinishSearch();
@@ -188,8 +175,8 @@ private:
 	
 	// Button --- End
 	
-	void SetupResultText();
-	void SetupResultCSV();
+	FString GetResultText();
+	FString GetResultCSV();
 	
 	// マテリアルのパラメーターがマッチするか
 	bool CheckMaterialParameterInfoScalar(UMaterialInterface* InMaterial, FText& OutValueText);
@@ -227,6 +214,11 @@ private:
 	/** result tree widget instance*/
 	TSharedPtr<SCMTParameterSearcherTreeViewType> TreeView;
 	
+	TSharedPtr<SButton> SearchStartButton;
+	TSharedPtr<SButton> CopyClipBoardButton;
+	TSharedPtr<SButton> ExportTextButton;
+	TSharedPtr<SButton> ExportCsvButton;
+	
 	/** changed SearchPath */
 	bool bDirtySearchPath;
 	
@@ -250,15 +242,6 @@ private:
 	
 	/** Find result list */
 	TArray<FCMTParameterSearcherResultShare> ItemsFound;
-	
-	
-	TSharedPtr<class SButton> SearchStartButton;
-	TSharedPtr<class SButton> CopyClipBoardButton;
-	TSharedPtr<class SButton> ExportTextButton;
-	
-	/** Export Text */
-	FString TextClipboard;
-	FString CSVClipboard;
 	
 	
 	

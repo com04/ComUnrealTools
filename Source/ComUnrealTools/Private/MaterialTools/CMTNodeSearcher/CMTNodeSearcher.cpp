@@ -22,25 +22,6 @@
 
 #define LOCTEXT_NAMESPACE "CMTNodeSearcher"
 
-/**
- * Add clip board string from MaterialData.
- */
-void AddClipboardTextFromNodeSearcherResult(const FCMTNodeSearcherResultShare& Result, int32 Indent, FString* ExportText)
-{
-	FString NodeComment;
-	if (!Result->GetCommentText().IsEmpty())
-	{
-		NodeComment += FString::Printf(TEXT("     // Node Comment:%s"), *Result->GetCommentText());
-	}
-	
-	*ExportText += FString::Printf(TEXT("%s- %s%s\n"), *FString::ChrN(Indent, TEXT(' ')), *Result->GetDisplayString().ToString(), *NodeComment);
-	
-	for (auto It = Result->GetChildren().CreateConstIterator() ; It ; ++It)
-	{
-		AddClipboardTextFromNodeSearcherResult(*It, Indent + 2, ExportText);
-	}
-}
-
 
 ////////////////////////////////////
 // SCMTNodeSearcher
@@ -75,7 +56,7 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 			.Padding(0.f, 4.f, 12.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("SearchPath", "Path"))
+				.Text(LOCTEXT("SearchPath", "Search Path"))
 			]
 			+SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -83,7 +64,6 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("FindPath", "Enter material path to find references..."))
 				.InitialText(FText::FromString(SearchPath))
-				.OnTextChanged(this, &SCMTNodeSearcher::OnSearchPathChanged)
 				.OnTextCommitted(this, &SCMTNodeSearcher::OnSearchPathCommitted)
 			]
 		]
@@ -99,7 +79,7 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 			.Padding(0.f, 4.f, 12.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("SearchName", "Name"))
+				.Text(LOCTEXT("SearchName", "Search Name"))
 			]
 			+SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -107,7 +87,6 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("Find", "Enter material or node name, texture name to find references..."))
 				.InitialText(FText::FromString(SearchValue))
-				.OnTextChanged(this, &SCMTNodeSearcher::OnSearchTextChanged)
 				.OnTextCommitted(this, &SCMTNodeSearcher::OnSearchTextCommitted)
 			]
 		]
@@ -115,45 +94,71 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 		// CheckBox material instance
 		+SVerticalBox::Slot()
 		.AutoHeight()
+		.Padding(10.0f, 4.0f, 0.0f, 0.0f)
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(0.f, 4.f, 12.f, 0.f)
-			[
-				SNew(STextBlock)
-				.Text(LOCTEXT("CheckMaterialInstance", "check material instance"))
-			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
+			.VAlign(VAlign_Center)
 			[
 				SNew(SCheckBox)
 				.IsChecked(CheckMaterialInstance)
 				.OnCheckStateChanged(this, &SCMTNodeSearcher::OnCheckMaterialInstanceChanged)
 			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("CheckMaterialInstance", "check material instance"))
+			]
+		]
+		
+		
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+		[
+			SNew(SHorizontalBox)
 			
+			// Asset Check
 			+ SHorizontalBox::Slot()
-			.MaxWidth(50.f)
-				
+			.MaxWidth(300.f)
+			[
+				SAssignNew(SearchStartButton, SButton)
+				.Text(LOCTEXT("SearchStartButton", "Search Start"))
+				.OnClicked(this, &SCMTNodeSearcher::ButtonSearchStartClicked)
+				.IsEnabled(false)
+			]
 			// copy clipboard
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(50.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SAssignNew(CopyClipBoardButton, SButton)
 				.Text(LOCTEXT("CopyClipboard", "Copy ClipBoard"))
 				.OnClicked(this, &SCMTNodeSearcher::ButtonCopyClipBoardClicked)
+				.IsEnabled(false)
 			]
-			
-			+ SHorizontalBox::Slot()
-			.MaxWidth(10.f)
-			
 			// export Text
 			+ SHorizontalBox::Slot()
 			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SAssignNew(ExportTextButton, SButton)
 				.Text(LOCTEXT("ExportText", "Export Text"))
 				.OnClicked(this, &SCMTNodeSearcher::ButtonExportTextClicked)
+				.IsEnabled(false)
+			]
+			// export csv
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SAssignNew(ExportCsvButton, SButton)
+				.Text(LOCTEXT("ExportCsv", "Export CSV"))
+				.OnClicked(this, &SCMTNodeSearcher::ButtonExportCsvClicked)
+				.IsEnabled(false)
 			]
 		]
 		
@@ -188,60 +193,45 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 	
 	
 	
-	OnSearchPathChanged(FText::FromString(SearchPath));
-	OnSearchTextChanged(FText::FromString(SearchValue));
+	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
 }
 
-FReply SCMTNodeSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) 
-{
-	return SCompoundWidget::OnKeyDown(MyGeometry, InKeyEvent);
-}
 
 
 // Search path --- Begin
 
 /** text change event */
-void SCMTNodeSearcher::OnSearchPathChanged(const FText& Text)
+void SCMTNodeSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	SearchPath = Text.ToString();
 	bDirtySearchPath = true;
-}
-
-/** text commit event */
-void SCMTNodeSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
-{
-	if (MaterialSearcher.IsAsyncLoading())  return;
 	
-	OnSearchPathChanged(Text);
-	SearchStart();
+	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
 }
-
-// Search path --- End
-
-
-
-// Search box --- Begin
 
 /** text change event */
-void SCMTNodeSearcher::OnSearchTextChanged(const FText& Text)
+void SCMTNodeSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	SearchValue = Text.ToString();
 	bDirtySearchText = true;
-}
 
-/** text commit event */
-void SCMTNodeSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
-{
-	if (CommitType != ETextCommit::OnEnter) return;
-	if (MaterialSearcher.IsAsyncLoading())  return;
-	
-	OnSearchTextChanged(Text);
-	SearchStart();
+	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
 }
 
 /** Search */
 void SCMTNodeSearcher::SearchStart()
 {
+	// 前回の検索結果をクリアする
+	for (auto It(ItemsFound.CreateIterator()); It; ++It)
+	{
+		TreeView->SetItemExpansion(*It, false);
+	}
+	ItemsFound.Empty();
+	
+	HighlightText = FText::FromString(SearchValue);
+	
+
 	// search path parse
 	if (bDirtySearchPath)
 	{
@@ -259,26 +249,16 @@ void SCMTNodeSearcher::SearchStart()
 	// search
 	if (SearchTokens.Num() > 0)
 	{
-		// 前回の検索結果をクリアする
-		for (auto It(ItemsFound.CreateIterator()); It; ++It)
-		{
-			TreeView->SetItemExpansion(*It, false);
-		}
-		ItemsFound.Empty();		
-	
-		HighlightText = FText::FromString(SearchValue);
-		MatchTokens();
+		MaterialSearcher.SearchStart(SearchPathTokens, TArray<FString>(),
+				true,
+				true, (CheckMaterialInstance == ECheckBoxState::Checked),
+				true);
 	}
-}
-
-
-/** search match */
-void SCMTNodeSearcher::MatchTokens()
-{
-	MaterialSearcher.SearchStart(SearchPathTokens, TArray<FString>(),
-			true,
-			true, (CheckMaterialInstance == ECheckBoxState::Checked),
-			true);
+	else
+	{
+		MaterialSearcher.Reset();
+		FinishSearch();
+	}
 }
 
 /** search finish callback */
@@ -355,6 +335,15 @@ void SCMTNodeSearcher::FinishSearch()
 	if (ItemsFound.Num() == 0)
 	{
 		ItemsFound.Add(FCMTNodeSearcherResultShare(new FCMTNodeSearcherResult(LOCTEXT("ResultNoResults", "No Results found"))));
+		CopyClipBoardButton->SetEnabled(false);
+		ExportTextButton->SetEnabled(false);
+		ExportCsvButton->SetEnabled(false);
+	}
+	else
+	{
+		CopyClipBoardButton->SetEnabled(true);
+		ExportTextButton->SetEnabled(true);
+		ExportCsvButton->SetEnabled(true);
 	}
 
 	TreeView->RequestTreeRefresh();
@@ -363,11 +352,6 @@ void SCMTNodeSearcher::FinishSearch()
 	{
 		TreeView->SetItemExpansion(*It, true);
 	}
-	
-	
-	// clipboard
-	AddClipboardText();
-	
 }
 
 bool SCMTNodeSearcher::MatchTokensFromAssets(const FAssetData& InAsset,
@@ -514,7 +498,7 @@ TSharedRef<ITableRow> SCMTNodeSearcher::OnGenerateRow(FCMTNodeSearcherResultShar
 	if(!InItem->GetCommentText().IsEmpty())
 	{
 		FFormatNamedArguments Args;
-		Args.Add(TEXT("Comment"), FText::FromString(InItem->GetCommentText()));
+		Args.Add(TEXT("Comment"), InItem->GetCommentText());
 
 		CommentText = FText::Format(LOCTEXT("NodeComment", "Node Comment:[{Comment}]"), Args);
 	}
@@ -541,7 +525,7 @@ TSharedRef<ITableRow> SCMTNodeSearcher::OnGenerateRow(FCMTNodeSearcherResultShar
 				.Padding(2,0)
 				[
 					SNew(STextBlock)
-					.Text(InItem.Get(), &FCMTNodeSearcherResult::GetDisplayString)
+					.Text(InItem->GetDisplayText())
 					.ColorAndOpacity(FLinearColor::White)
 					.HighlightText(HighlightText)
 				]
@@ -593,10 +577,20 @@ TOptional<float> SCMTNodeSearcher::GetProgressBarPercent() const
 	return MaterialSearcher.GetProgress();
 }
 
+/* SearchStart clicked event */
+FReply SCMTNodeSearcher::ButtonSearchStartClicked()
+{
+	SearchStart();
+	
+	return FReply::Handled();
+}
+
 /* CopyClipboard clicked event */
 FReply SCMTNodeSearcher::ButtonCopyClipBoardClicked()
 {
-	FCUTUtility::ExportClipboard(TextClipboard);
+	FString ClipBoard = GetClipboardText();
+	
+	FCUTUtility::ExportClipboard(ClipBoard);
 	
 	return FReply::Handled();
 }
@@ -604,23 +598,74 @@ FReply SCMTNodeSearcher::ButtonCopyClipBoardClicked()
 /* ExportText clicked event */
 FReply SCMTNodeSearcher::ButtonExportTextClicked()
 {
-	FCUTUtility::ExportTxt("NodeSearcher", "CMTNodeSearcher.txt", TextClipboard, TEXT("Text |*.txt"));
+	FString ClipBoard = GetClipboardText();
+	
+	FCUTUtility::ExportTxt("NodeSearcher", "CMTNodeSearcher.txt", ClipBoard, TEXT("Text |*.txt"));
 	
 	return FReply::Handled();
 }
 
-void SCMTNodeSearcher::AddClipboardText()
+/* ExportCsv clicked event */
+FReply SCMTNodeSearcher::ButtonExportCsvClicked()
 {
-	TextClipboard = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-	TextClipboard += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
+	FString ClipBoard = GetClipboardCsv();
 	
+	FCUTUtility::ExportTxt("NodeSearcher", "CMTNodeSearcher.csv", ClipBoard, TEXT("CSV |*.csv"));
+	
+	return FReply::Handled();
+}
+
+FString SCMTNodeSearcher::GetClipboardText()
+{
+	FString RetString;
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
+	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
 	
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
 	{
-		AddClipboardTextFromNodeSearcherResult(*It, 0, &TextClipboard);
+		AddClipboardTextFromResult(*It, 0, &RetString);
+	}
+	return RetString;
+}
+
+FString SCMTNodeSearcher::GetClipboardCsv()
+{
+	FString RetString;
+	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
+	{
+		AddClipboardCsvFromResult(*It, &RetString);
+	}
+	return RetString;
+}
+
+/**
+ * Add clip board string
+ */
+void SCMTNodeSearcher::AddClipboardTextFromResult(const FCMTNodeSearcherResultShare& Result, int32 Indent, FString* ExportText)
+{
+	FString NodeComment;
+	if (!Result->GetCommentText().IsEmpty())
+	{
+		NodeComment += FString::Printf(TEXT("     // Node Comment:%s"), *Result->GetCommentText().ToString());
+	}
+	
+	*ExportText += FString::Printf(TEXT("%s- %s%s\n"), *FString::ChrN(Indent, TEXT(' ')), *Result->GetDisplayText().ToString(), *NodeComment);
+	
+	for (auto It = Result->GetChildren().CreateConstIterator() ; It ; ++It)
+	{
+		AddClipboardTextFromResult(*It, Indent + 2, ExportText);
 	}
 }
 
+void SCMTNodeSearcher::AddClipboardCsvFromResult(const FCMTNodeSearcherResultShare& Result, FString* ExportText)
+{
+	*ExportText += FString::Printf(TEXT("%s,//%s\n"), *Result->GetDisplayText().ToString(), *Result->GetCommentText().ToString());
+	
+	for (auto It = Result->GetChildren().CreateConstIterator() ; It ; ++It)
+	{
+		*ExportText += FString::Printf(TEXT("%s,%s,//%s\n"), *Result->GetDisplayText().ToString(), *((*It)->GetDisplayText().ToString()), *(*It)->GetCommentText().ToString());
+	}
+}
 
 
 // Progress Bar --- End

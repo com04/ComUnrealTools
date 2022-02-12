@@ -41,142 +41,134 @@ void SCMTParameterDump::Construct(const FArguments& InArgs)
 	
 	ChildSlot
 	[
-		SNew(SBorder)
-		.BorderImage(FCoreStyle::Get().GetBrush("ToolPanel.GroupBorder"))
-		.BorderBackgroundColor(FLinearColor::Gray) // Darken the outer border
-		.Padding(FMargin(5.0f, 5.0f))
+		SNew(SVerticalBox)
+	
+		// target asset
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("CheckMaterialLabel", "Material Asset: "))
+			]
+			
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.5f)
+			[
+				SNew(SObjectPropertyEntryBox)
+				.OnShouldFilterAsset(this, &SCMTParameterDump::ShouldFilterAsset)
+				.NewAssetFactories(PropertyCustomizationHelpers::GetNewAssetFactoriesForClasses(ClassFilters))
+				.ObjectPath(this, &SCMTParameterDump::GetObjectPath)
+				.OnObjectChanged(this, &SCMTParameterDump::OnObjectChanged)
+			]
+			+SHorizontalBox::Slot()
+			.FillWidth(0.5f)
+			[
+				SNullWidget::NullWidget
+			]
+		]
+		
+
+		// options
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(10.0f, 4.0f, 0.0f, 0.0f)
 		[
 			SNew(SVerticalBox)
-		
-			// target asset
+			// check box "disp override only"
 			+ SVerticalBox::Slot()
 			.AutoHeight()
+			.Padding(0.f, 2.f)
 			[
 				SNew(SHorizontalBox)
+			
+				// check box
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(SCheckBox)
+					.IsChecked(DispOverrideOnlyState)
+					.OnCheckStateChanged(this, &SCMTParameterDump::OnDispOverrideOnlyStateChanged)
+				]
+				
+				// Asset property
 				+ SHorizontalBox::Slot()
 				.AutoWidth()
 				.VAlign(VAlign_Center)
 				[
 					SNew(STextBlock)
-					.Text(LOCTEXT("CheckMaterialLabel", "Material Asset: "))
-				]
-				
-				+ SHorizontalBox::Slot()
-				.FillWidth(0.5f)
-				[
-					SNew(SObjectPropertyEntryBox)
-					.OnShouldFilterAsset(this, &SCMTParameterDump::ShouldFilterAsset)
-					.NewAssetFactories(PropertyCustomizationHelpers::GetNewAssetFactoriesForClasses(ClassFilters))
-					.ObjectPath(this, &SCMTParameterDump::GetObjectPath)
-					.OnObjectChanged(this, &SCMTParameterDump::OnObjectChanged)
-				]
-				+SHorizontalBox::Slot()
-				.FillWidth(0.5f)
-				[
-					SNullWidget::NullWidget
+					.Text(LOCTEXT("DispOverrideOnly", "disp override only"))
 				]
 			]
-			
-
-			// options
-			+ SVerticalBox::Slot()
-			.AutoHeight()
+		]
+		
+		// Button
+		+ SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+		[
+			SNew(SHorizontalBox)
+		
+			// Asset Check
+			+ SHorizontalBox::Slot()
+			.MaxWidth(300.f)
 			[
-				SNew(SVerticalBox)
-				// check box "disp override only"
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				.Padding(0.f, 2.f)
-				[
-					SNew(SHorizontalBox)
-				
-					// check box
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					[
-						SNew(SCheckBox)
-						.IsChecked(DispOverrideOnlyState)
-						.OnCheckStateChanged(this, &SCMTParameterDump::OnDispOverrideOnlyStateChanged)
-					]
-					
-					// Asset property
-					+ SHorizontalBox::Slot()
-					.AutoWidth()
-					[
-						SNew(STextBlock)
-						.Text(LOCTEXT("DispOverrideOnly", "disp override only"))
-					]
-				]
+				SAssignNew(AssetCheckButton, SButton)
+				.Text(LOCTEXT("AssetCheckButton", "Asset Check"))
+				.OnClicked(this, &SCMTParameterDump::ButtonAssetCheckClicked)
+				.IsEnabled(false)
 			]
-			
-			+ SVerticalBox::Slot()
-			.MaxHeight(5.f)
-					
-			// Button
-			+ SVerticalBox::Slot()
-			.AutoHeight()
+			// copy clipboard
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(50.0f, 0.0f, 0.0f, 0.0f)
 			[
-				SNew(SHorizontalBox)
-			
-				// Asset Check
-				+ SHorizontalBox::Slot()
-				// .AutoWidth()
-				.MaxWidth(300.f)
-				[
-					SAssignNew(AssetCheckButton, SButton)
-					.Text(LOCTEXT("AssetCheckButton", "Asset Check"))
-					.OnClicked(this, &SCMTParameterDump::ButtonAssetCheckClicked)
-				]
-				
-				+ SHorizontalBox::Slot()
-				.MaxWidth(50.f)
-					
-				// copy clipboard
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SAssignNew(CopyClipBoardButton, SButton)
-					.Text(LOCTEXT("CopyClipboard", "Copy ClipBoard"))
-					.OnClicked(this, &SCMTParameterDump::ButtonCopyClipBoardClicked)
-				]
-				
-				+ SHorizontalBox::Slot()
-				.MaxWidth(10.f)
-				
-				// export Text
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SAssignNew(ExportTextButton, SButton)
-					.Text(LOCTEXT("ExportText", "Export Text"))
-					.OnClicked(this, &SCMTParameterDump::ButtonExportTextClicked)
-				]
-				
-				// export csv
-				+ SHorizontalBox::Slot()
-				.AutoWidth()
-				[
-					SAssignNew(ExportCsvButton, SButton)
-					.Text(LOCTEXT("ExportCsv", "Export CSV"))
-					.OnClicked(this, &SCMTParameterDump::ButtonExportCsvClicked)
-				]
+				SAssignNew(CopyClipBoardButton, SButton)
+				.Text(LOCTEXT("CopyClipboard", "Copy ClipBoard"))
+				.OnClicked(this, &SCMTParameterDump::ButtonCopyClipBoardClicked)
+				.IsEnabled(false)
 			]
-			
-			// Result tree
-			+ SVerticalBox::Slot()
-			.FillHeight(1.0f)
-			.Padding(0.f, 4.f, 0.f, 0.f)
+			// export Text
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 			[
-				SNew(SBorder)
-				.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName))
-				[
-					SAssignNew(TreeView, SCMTParameterDumpViewType)
-					.ItemHeight(24)
-					.TreeItemsSource(&ItemsFound)
-					.OnGenerateRow(this, &SCMTParameterDump::OnGenerateRow)
-					.OnGetChildren(this, &SCMTParameterDump::OnGetChildren)
-					.OnMouseButtonDoubleClick(this,&SCMTParameterDump::OnTreeSelectionDoubleClicked)
-				]
+				SAssignNew(ExportTextButton, SButton)
+				.Text(LOCTEXT("ExportText", "Export Text"))
+				.OnClicked(this, &SCMTParameterDump::ButtonExportTextClicked)
+				.IsEnabled(false)
+			]
+			// export csv
+			+ SHorizontalBox::Slot()
+			.AutoWidth()
+			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
+			[
+				SAssignNew(ExportCsvButton, SButton)
+				.Text(LOCTEXT("ExportCsv", "Export CSV"))
+				.OnClicked(this, &SCMTParameterDump::ButtonExportCsvClicked)
+				.IsEnabled(false)
+			]
+		]
+		
+		// Result tree
+		+ SVerticalBox::Slot()
+		.FillHeight(1.0f)
+		.Padding(0.f, 4.f, 0.f, 0.f)
+		[
+			SNew(SBorder)
+			.BorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName))
+			[
+				SAssignNew(TreeView, SCMTParameterDumpViewType)
+				.ItemHeight(24)
+				.TreeItemsSource(&ItemsFound)
+				.OnGenerateRow(this, &SCMTParameterDump::OnGenerateRow)
+				.OnGetChildren(this, &SCMTParameterDump::OnGetChildren)
+				.OnMouseButtonDoubleClick(this,&SCMTParameterDump::OnTreeSelectionDoubleClicked)
 			]
 		]
 	];
@@ -208,14 +200,13 @@ FString SCMTParameterDump::GetObjectPath() const
 void SCMTParameterDump::OnObjectChanged(const FAssetData& AssetData)
 {
 	SelectedMaterial = Cast<UMaterialInterface>(AssetData.GetAsset());
+	AssetCheckButton->SetEnabled(SelectedMaterial != nullptr);
 }
 
 /** AssetCheckButton clicked event */
 FReply SCMTParameterDump::ButtonAssetCheckClicked()
 {
 	CheckMaterialName = FString();
-	TextClipboard = FString();
-	CsvClipboard = FString();
 	if (!IsValid(SelectedMaterial))
 	{
 		return FReply::Handled();
@@ -368,6 +359,15 @@ FReply SCMTParameterDump::ButtonAssetCheckClicked()
 	if (ItemsFound.Num() == 0)
 	{
 		ItemsFound.Add(FCMTParameterDumpResultShare(new FCMTParameterDumpResult(TEXT("No Results found"), TEXT(""), ECMTParameterDumpResultType::Other)));
+		CopyClipBoardButton->SetEnabled(false);
+		ExportTextButton->SetEnabled(false);
+		ExportCsvButton->SetEnabled(false);
+	}
+	else
+	{
+		CopyClipBoardButton->SetEnabled(true);
+		ExportTextButton->SetEnabled(true);
+		ExportCsvButton->SetEnabled(true);
 	}
 	TreeView->RequestTreeRefresh();
 	
@@ -379,9 +379,9 @@ FReply SCMTParameterDump::ButtonAssetCheckClicked()
 /** CopyClipboard clicked event */
 FReply SCMTParameterDump::ButtonCopyClipBoardClicked()
 {
-	SetupClipboardText();
+	FString ClipBoard = GetClipboardText();
 
-	FCUTUtility::ExportClipboard(TextClipboard);
+	FCUTUtility::ExportClipboard(ClipBoard);
 	
 	return FReply::Handled();
 }
@@ -389,11 +389,11 @@ FReply SCMTParameterDump::ButtonCopyClipBoardClicked()
 /** ExportText clicked event */
 FReply SCMTParameterDump::ButtonExportTextClicked()
 {
-	SetupClipboardText();
+	FString ClipBoard = GetClipboardText();
 
 	FString ExportFileName = CheckMaterialName.IsEmpty() ? TEXT("CMTParameterDump") : CheckMaterialName;
 	ExportFileName += FString(TEXT(".txt"));
-	FCUTUtility::ExportTxt(TEXT("Parameter Dump"), ExportFileName, TextClipboard, TEXT("Text |*.txt"));
+	FCUTUtility::ExportTxt(TEXT("Parameter Dump"), ExportFileName, ClipBoard, TEXT("Text |*.txt"));
 	
 	return FReply::Handled();
 }
@@ -401,11 +401,11 @@ FReply SCMTParameterDump::ButtonExportTextClicked()
 /** ExportText clicked event */
 FReply SCMTParameterDump::ButtonExportCsvClicked()
 {
-	SetupCsvText();
+	FString ClipBoard = GetClipboardCsv();
 
 	FString ExportFileName = CheckMaterialName.IsEmpty() ? TEXT("CMTParameterDump") : CheckMaterialName;
 	ExportFileName += FString(TEXT(".csv"));
-	FCUTUtility::ExportTxt(TEXT("Parameter Dump"), ExportFileName, CsvClipboard, TEXT("CSV |*.csv"));
+	FCUTUtility::ExportTxt(TEXT("Parameter Dump"), ExportFileName, ClipBoard, TEXT("CSV |*.csv"));
 	
 	return FReply::Handled();
 }
@@ -478,31 +478,34 @@ void SCMTParameterDump::OnTreeSelectionDoubleClicked(FCMTParameterDumpResultShar
 
 
 
-void SCMTParameterDump::SetupClipboardText()
+FString SCMTParameterDump::GetClipboardText()
 {
+	FString RetString;
 	if (IsValid(SelectedMaterial))
 	{
-		TextClipboard = FString::Printf(TEXT("Material: %s\n"), *SelectedMaterial->GetPathName());
+		RetString = FString::Printf(TEXT("Material: %s\n"), *SelectedMaterial->GetPathName());
 	}
 	else
 	{
-		TextClipboard = FString::Printf(TEXT("Material: \n"));
+		RetString = FString::Printf(TEXT("Material: \n"));
 	}
 	
 	
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
 	{
-		TextClipboard += FString::Printf(TEXT("- %s: %s     -> %s\n"), *(*It)->GetTypeString(), *(*It)->GetParamNameString(), *(*It)->GetParameterValueString());
+		RetString += FString::Printf(TEXT("- %s: %s     -> %s\n"), *(*It)->GetTypeString(), *(*It)->GetParamNameString(), *(*It)->GetParameterValueString());
 	}
+	return RetString;
 }
 
-void SCMTParameterDump::SetupCsvText()
+FString SCMTParameterDump::GetClipboardCsv()
 {
-	CsvClipboard.Empty();
+	FString RetString;
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
 	{
-		CsvClipboard += FString::Printf(TEXT("%s,%s,\"%s\"\n"), *(*It)->GetTypeString(), *(*It)->GetParamNameString(), *(*It)->GetParameterValueString());
+		RetString += FString::Printf(TEXT("%s,%s,\"%s\"\n"), *(*It)->GetTypeString(), *(*It)->GetParamNameString(), *(*It)->GetParameterValueString());
 	}
+	return RetString;
 }
 
 

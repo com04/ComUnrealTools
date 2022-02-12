@@ -53,10 +53,10 @@ public:
 	FName	GetBackgroundBrushName() const;
 
 	/** expression comment */
-	FString GetCommentText() const;
+	FText GetCommentText() const;
 
 	/** result display text */
-	FText GetDisplayString() const;
+	FText GetDisplayText() const;
 	
 	/** Add tree child */
 	void AddChild(TSharedPtr<FCMTNodeSearcherResult> Child);
@@ -85,7 +85,7 @@ private:
 	FText DisplayText;
 
 	/** expression comment */
-	FString CommentText;
+	FText CommentText;
 	
 	/** result type */
 	ECMTNodeSearcherResultType Type;

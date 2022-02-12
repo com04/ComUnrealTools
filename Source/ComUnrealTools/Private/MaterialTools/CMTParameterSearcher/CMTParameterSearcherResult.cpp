@@ -94,7 +94,7 @@ FName	FCMTParameterSearcherResult::GetBackgroundBrushName() const
 	return BrushName;
 }
 
-FText FCMTParameterSearcherResult::GetDisplayString() const
+FText FCMTParameterSearcherResult::GetDisplayText() const
 {
 	return DisplayText;
 }

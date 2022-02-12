@@ -54,23 +54,14 @@ protected:
 
 private:
 	
-	// Search path --- Begin
+	// Search  --- Begin
 	
 	/** text change event */
 	void OnSearchPathChanged(const FText& Text);
-	/** text commit event */
-	void OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType);
-	
-	// Search path --- End
-	
-	
-	// Search box --- Begin
 	
 	/** text change event */
 	void OnSearchTextChanged(const FText& Text);
-	/** text commit event */
-	void OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType);
-	// Search box --- End
+	// Search  --- End
 	
 	// Check box --- Begin
 	void OnCheckBoxUsePropertySearchChanged(ECheckBoxState InValue);

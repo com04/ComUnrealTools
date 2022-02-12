@@ -24,6 +24,7 @@ struct FCMTStatListResult
 	uint32	Instruction;
 	int32	TextureNum;
 	uint32	TextureSize;
+	int8	UseRenderAfterDOF;
 	int8	UsePositionOffset;
 	int8	UseDepthOffset;
 	int8	UseRefraction;

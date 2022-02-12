@@ -16,6 +16,7 @@
 typedef TSharedPtr<class FCMTNodeSearcherResult> FCMTNodeSearcherResultShare;
 typedef STreeView<FCMTNodeSearcherResultShare>  SCMTNodeSearcherTreeViewType;
 struct FAssetData;
+class SButton;
 class UMaterialExpressionComment;
 
 /**
@@ -41,40 +42,16 @@ public:
 	/** Destructor. */
 	~SCMTNodeSearcher();
 
-public:
-
-protected:
-
-	// SCompoundWidget overrides
-
-	virtual FReply OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) override;
-
 private:
 	
-	// Search path --- Begin
-	
-	/** text change event */
-	void OnSearchPathChanged(const FText& Text);
-	/** text commit event */
+	// Search  --- Begin
 	void OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType);
-	
-	// Search path --- End
-	
-	
-	// Search box --- Begin
-	
-	/** text change event */
-	void OnSearchTextChanged(const FText& Text);
-	/** text commit event */
 	void OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType);
-	// Search box --- End
+	// Search  --- End
 	
 	
 	/** Search */
 	void SearchStart();
-	
-	/** search match */
-	void MatchTokens();
 	
 	/** search finish callback */
 	void FinishSearch();
@@ -124,17 +101,30 @@ private:
 	
 	// Button --- Begin
 	
+	/** SearchStart clicked event */
+	FReply ButtonSearchStartClicked();
+	
 	/** CopyClipboard clicked event */
 	FReply ButtonCopyClipBoardClicked();
 	
 	/** ExportText clicked event */
 	FReply ButtonExportTextClicked();
 	
+	/** ExportCsv clicked event */
+	FReply ButtonExportCsvClicked();
+	
 	// Button --- End
 	
-	void AddClipboardText();
+	FString GetClipboardText();
+	FString GetClipboardCsv();
+	void AddClipboardTextFromResult(const FCMTNodeSearcherResultShare& Result, int32 Indent, FString* ExportText);
+	void AddClipboardCsvFromResult(const FCMTNodeSearcherResultShare& Result, FString* ExportText);
 	
 	
+	TSharedPtr<SButton> SearchStartButton;
+	TSharedPtr<SButton> CopyClipBoardButton;
+	TSharedPtr<SButton> ExportTextButton;
+	TSharedPtr<SButton> ExportCsvButton;
 	
 	/** result tree widget instance*/
 	TSharedPtr<SCMTNodeSearcherTreeViewType> TreeView;
@@ -163,12 +153,6 @@ private:
 	/** Find result list */
 	TArray<FCMTNodeSearcherResultShare> ItemsFound;
 	
-	
-	TSharedPtr<class SButton> CopyClipBoardButton;
-	TSharedPtr<class SButton> ExportTextButton;
-	
-	/** Export Text */
-	FString TextClipboard;
 	
 	
 	

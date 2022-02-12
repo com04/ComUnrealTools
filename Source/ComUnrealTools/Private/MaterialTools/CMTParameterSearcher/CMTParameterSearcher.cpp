@@ -99,7 +99,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.Padding(0.0f, 4.0f, 12.0f, 0.0f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("SearchPath", "Path"))
+				.Text(LOCTEXT("SearchPath", "Search Path"))
 			]
 			+SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -107,7 +107,6 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("FindPath", "Enter material path to find references..."))
 				.InitialText(FText::FromString(SearchPath))
-				.OnTextChanged(this, &SCMTParameterSearcher::OnSearchPathChanged)
 				.OnTextCommitted(this, &SCMTParameterSearcher::OnSearchPathCommitted)
 			]
 		]
@@ -131,7 +130,6 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("Find", "Enter material or node name, texture name to find references..."))
 				.InitialText(FText::FromString(SearchValue))
-				.OnTextChanged(this, &SCMTParameterSearcher::OnSearchTextChanged)
 				.OnTextCommitted(this, &SCMTParameterSearcher::OnSearchTextCommitted)
 			]
 		]
@@ -423,7 +421,6 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				.Text(LOCTEXT("TextureParameter", "Texture"))
 			]
 			+SHorizontalBox::Slot()
-//			.AutoWidth()
 			.VAlign(VAlign_Center)
 			.FillWidth(1.0f)
 			.Padding(TextBlockToParamPadding, 0.0f, 0.0f, 0.0f)
@@ -517,7 +514,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("MIOverrideOnly", "MaterialInstance override only"))
+				.Text(LOCTEXT("MIOverrideOnly", "material instance override only"))
 			]
 		]
 		
@@ -527,27 +524,25 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 		.Padding(0.0f, 20.0f, 0.0f, 0.0f)
 		[
 			SNew(SHorizontalBox)
+			
 			// 実行ボタン
 			+SHorizontalBox::Slot()
-			.AutoWidth()
+			.MaxWidth(300.f)
 			[
-				SNew(SBox)
-				.VAlign(EVerticalAlignment::VAlign_Center)
-				.MinDesiredWidth(200.0f)
-				[
-					SAssignNew(SearchStartButton, SButton)
-					.Text(LOCTEXT("SearchStart", "Search Start"))
-					.OnClicked(this, &SCMTParameterSearcher::ButtonSearchStartClicked)
-				]
+				SAssignNew(SearchStartButton, SButton)
+				.Text(LOCTEXT("SearchStart", "Search Start"))
+				.OnClicked(this, &SCMTParameterSearcher::ButtonSearchStartClicked)
+				.IsEnabled(false)
 			]
 			// copy clipboard
 			+SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(40.0f, 0.0f, 0.0f, 0.0f)
+			.Padding(50.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SAssignNew(CopyClipBoardButton, SButton)
 				.Text(LOCTEXT("CopyClipboard", "Copy ClipBoard"))
 				.OnClicked(this, &SCMTParameterSearcher::ButtonCopyClipBoardClicked)
+				.IsEnabled(false)
 			]
 			// export Text
 			+SHorizontalBox::Slot()
@@ -557,15 +552,17 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				SAssignNew(ExportTextButton, SButton)
 				.Text(LOCTEXT("ExportText", "Export Text"))
 				.OnClicked(this, &SCMTParameterSearcher::ButtonExportTextClicked)
+				.IsEnabled(false)
 			]
 			// export CSV
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 			[
-				SAssignNew(ExportTextButton, SButton)
+				SAssignNew(ExportCsvButton, SButton)
 				.Text(LOCTEXT("ExportCSV", "Export CSV"))
 				.OnClicked(this, &SCMTParameterSearcher::ButtonExportCSVClicked)
+				.IsEnabled(false)
 			]
 		]
 		
@@ -601,8 +598,8 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 	
 	
 	// 前回の状態を復帰。Enabledでの灰色化対応。
-	OnSearchPathChanged(FText::FromString(SearchPath));
-	OnSearchTextChanged(FText::FromString(SearchValue));
+	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
 	SetupCheckBoxType();
 	OnCheckBoxVectorRChanged(CheckBoxStateVectorR);
 	OnCheckBoxVectorGChanged(CheckBoxStateVectorG);
@@ -619,40 +616,21 @@ FReply SCMTParameterSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyE
 // Search path --- Begin
 
 /** text change event */
-void SCMTParameterSearcher::OnSearchPathChanged(const FText& Text)
+void SCMTParameterSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	SearchPath = Text.ToString();
 	bDirtySearchPath = true;
-}
-
-/** text commit event */
-void SCMTParameterSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
-{
-	if (MaterialSearcher.IsAsyncLoading())  return;
 	
-	OnSearchPathChanged(Text);
+	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
 }
-
-// Search path --- End
-
-
-
-// Search box --- Begin
 
 /** text change event */
-void SCMTParameterSearcher::OnSearchTextChanged(const FText& Text)
+void SCMTParameterSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	SearchValue = Text.ToString();
 	bDirtySearchText = true;
-}
-
-/** text commit event */
-void SCMTParameterSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
-{
-	if (CommitType != ETextCommit::OnEnter) return;
-	if (MaterialSearcher.IsAsyncLoading())  return;
 	
-	OnSearchTextChanged(Text);
+	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
 }
 
 /** Search */
@@ -734,23 +712,21 @@ void SCMTParameterSearcher::SearchStart()
 	if (ItemsFound.Num() > 0)
 	{
 		TreeView->RequestTreeRefresh();
+		CopyClipBoardButton->SetEnabled(false);
+		ExportTextButton->SetEnabled(false);
+		ExportCsvButton->SetEnabled(false);
 		return;
 	}
 	
 	
 	// 検索開始
 	HighlightText = FText::FromString(SearchValue);
-	MatchTokens();
-}
-
-
-/** search match */
-void SCMTParameterSearcher::MatchTokens()
-{
+	
 	MaterialSearcher.SearchStart(SearchPathTokens, TArray<FString>(),
 			true,
 			true, true, false);
 }
+
 
 /** search finish callback */
 void SCMTParameterSearcher::FinishSearch()
@@ -883,6 +859,15 @@ void SCMTParameterSearcher::FinishSearch()
 	if (ItemsFound.Num() == 0)
 	{
 		ItemsFound.Add(FCMTParameterSearcherResultShare(new FCMTParameterSearcherResult(LOCTEXT("ResultNoResults", "No Results found"))));
+		CopyClipBoardButton->SetEnabled(false);
+		ExportTextButton->SetEnabled(false);
+		ExportCsvButton->SetEnabled(false);
+	}
+	else
+	{
+		CopyClipBoardButton->SetEnabled(true);
+		ExportTextButton->SetEnabled(true);
+		ExportCsvButton->SetEnabled(true);
 	}
 
 	TreeView->RequestTreeRefresh();
@@ -1119,7 +1104,7 @@ TSharedRef<ITableRow> SCMTParameterSearcher::OnGenerateRow(FCMTParameterSearcher
 				.Padding(2,0)
 				[
 					SNew(STextBlock)
-					.Text(InItem.Get(), &FCMTParameterSearcherResult::GetDisplayString)
+					.Text(InItem->GetDisplayText())
 					.ColorAndOpacity(InItem->IsError() ? FLinearColor(0.8f, 0.3f, 0.3f, 1.0f) : FLinearColor::White)
 					.HighlightText(HighlightText)
 				]
@@ -1184,8 +1169,8 @@ FReply SCMTParameterSearcher::ButtonSearchStartClicked()
 /* CopyClipboard clicked event */
 FReply SCMTParameterSearcher::ButtonCopyClipBoardClicked()
 {
-	SetupResultText();
-	FCUTUtility::ExportClipboard(TextClipboard);
+	FString Clipboard = GetResultText();
+	FCUTUtility::ExportClipboard(Clipboard);
 	
 	return FReply::Handled();
 }
@@ -1193,8 +1178,8 @@ FReply SCMTParameterSearcher::ButtonCopyClipBoardClicked()
 /* ExportText clicked event */
 FReply SCMTParameterSearcher::ButtonExportTextClicked()
 {
-	SetupResultText();
-	FCUTUtility::ExportTxt("ParameterSearcher", "CMTParameterSearcher.txt", TextClipboard, TEXT("Text |*.txt"));
+	FString Clipboard = GetResultText();
+	FCUTUtility::ExportTxt("ParameterSearcher", "CMTParameterSearcher.txt", Clipboard, TEXT("Text |*.txt"));
 	
 	return FReply::Handled();
 }
@@ -1202,31 +1187,34 @@ FReply SCMTParameterSearcher::ButtonExportTextClicked()
 /** ExportCSV clicked event */
 FReply SCMTParameterSearcher::ButtonExportCSVClicked()
 {
-	SetupResultCSV();
-	FCUTUtility::ExportTxt("ParameterSearcher", "CMTParameterSearcher.csv", CSVClipboard, TEXT("CSV |*.csv"));
+	FString Clipboard = GetResultCSV();
+	FCUTUtility::ExportTxt("ParameterSearcher", "CMTParameterSearcher.csv", Clipboard, TEXT("CSV |*.csv"));
 	
 	return FReply::Handled();
 }
 
 
-void SCMTParameterSearcher::SetupResultText()
+FString SCMTParameterSearcher::GetResultText()
 {
-	TextClipboard = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-	TextClipboard += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
+	FString RetString;
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
+	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
 	
 	
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
 	{
-		TextClipboard += FString::Printf(TEXT("- %s : %s\n"), *(*It)->GetDisplayString().ToString(), *(*It)->GetValueText().ToString());
+		RetString += FString::Printf(TEXT("- %s : %s\n"), *(*It)->GetDisplayText().ToString(), *(*It)->GetValueText().ToString());
 	}
+	return RetString;
 }
-void SCMTParameterSearcher::SetupResultCSV()
+FString SCMTParameterSearcher::GetResultCSV()
 {
-	CSVClipboard.Empty();
+	FString RetString;
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
 	{
-		CSVClipboard += FString::Printf(TEXT("%s,%s\n"), *(*It)->GetDisplayString().ToString(), *(*It)->GetValueText().ToString());
+		RetString += FString::Printf(TEXT("%s,%s\n"), *(*It)->GetDisplayText().ToString(), *(*It)->GetValueText().ToString());
 	}
+	return RetString;
 }
 
 bool SCMTParameterSearcher::CheckMaterialParameterInfoScalar(UMaterialInterface* InMaterial, FText& OutValueText)
