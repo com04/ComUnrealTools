@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #include "MaterialTools/Utility/CMTMaterialSearcher.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "Containers/Array.h"
 #include "Engine/StreamableManager.h"
@@ -94,7 +95,7 @@ private:
 	// Check box --- Begin
 	
 	/** "check material instance" checkbox changed callback */
-	void OnCheckMaterialInstanceChanged(ECheckBoxState InValue) { CheckMaterialInstance = InValue; }
+	void OnCheckMaterialInstanceChanged(ECheckBoxState InValue) { SetCheckMaterialInstance(InValue); }
 	
 	// Check box --- End
 	
@@ -181,8 +182,8 @@ private:
 	
 	
 	/** search text */
-	static FString SearchValue;
+	CUT_DEVSETTINGS_STRING(SearchValue, CMTStatListSearchPath);
 	
 	/** "check material instance" result */
-	static ECheckBoxState CheckMaterialInstance;
+	CUT_DEVSETTINGS_CHECKBOX(CheckMaterialInstance, CMTStatListCheckMaterialInstance);
 };

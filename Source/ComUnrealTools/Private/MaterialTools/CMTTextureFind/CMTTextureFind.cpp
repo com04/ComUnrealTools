@@ -25,13 +25,6 @@
 ////////////////////////////////////
 // SCMTTextureFind
 
-FString SCMTTextureFind::SearchPath = FString("/Game/");
-FString SCMTTextureFind::SearchName = FString("");
-ECheckBoxState SCMTTextureFind::CheckBoxOneAsset = ECheckBoxState::Checked;
-ECheckBoxState SCMTTextureFind::CheckBoxDirectory = ECheckBoxState::Unchecked;
-ECheckBoxState SCMTTextureFind::CheckBoxDirectoryMaterial = ECheckBoxState::Checked;
-ECheckBoxState SCMTTextureFind::CheckBoxDirectoryMaterialFunction = ECheckBoxState::Unchecked;
-
 
 SCMTTextureFind::~SCMTTextureFind()
 {
@@ -77,7 +70,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 				.AutoWidth()
 				[
 					SAssignNew(CheckBoxOneAssetWidget, SCheckBox)
-					.IsChecked(CheckBoxOneAsset)
+					.IsChecked(GetCheckBoxOneAsset())
 					.OnCheckStateChanged(this, &SCMTTextureFind::OnCheckOneAssetChanged)
 				]
 				
@@ -158,7 +151,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 				.AutoWidth()
 				[
 					SAssignNew(CheckBoxDirectoryWidget, SCheckBox)
-					.IsChecked(CheckBoxDirectory)
+					.IsChecked(GetCheckBoxOneAsset() == ECheckBoxState::Checked ? ECheckBoxState::Unchecked : ECheckBoxState::Checked)
 					.OnCheckStateChanged(this, &SCMTTextureFind::OnCheckDirectoryChanged)
 				]
 				
@@ -201,7 +194,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 						[
 							SNew(SSearchBox)
 							.HintText(LOCTEXT("Find", "Enter material path to find textures..."))
-							.InitialText(FText::FromString(SearchPath))
+							.InitialText(FText::FromString(GetSearchPath()))
 							.OnTextCommitted(this, &SCMTTextureFind::OnSearchPathCommitted)
 						]
 					]
@@ -225,7 +218,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 						[
 							SNew(SSearchBox)
 							.HintText(LOCTEXT("Find", "Enter material name to find textures..."))
-							.InitialText(FText::FromString(SearchName))
+							.InitialText(FText::FromString(GetSearchName()))
 							.OnTextCommitted(this, &SCMTTextureFind::OnSearchTextCommitted)
 						]
 					]
@@ -242,7 +235,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 						.AutoWidth()
 						[
 							SNew(SCheckBox)
-							.IsChecked(CheckBoxDirectoryMaterial)
+							.IsChecked(GetCheckBoxDirectoryMaterial())
 							.OnCheckStateChanged(this, &SCMTTextureFind::OnCheckDirectoryMaterialChanged)
 						]
 						
@@ -267,7 +260,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 						.AutoWidth()
 						[
 							SNew(SCheckBox)
-							.IsChecked(CheckBoxDirectoryMaterialFunction)
+							.IsChecked(GetCheckBoxDirectoryMaterialFunction())
 							.OnCheckStateChanged(this, &SCMTTextureFind::OnCheckDirectoryMaterialFunctionChanged)
 						]
 						
@@ -331,7 +324,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 		]
 	];
 	
-	if (CheckBoxOneAsset == ECheckBoxState::Checked)
+	if (GetCheckBoxOneAsset() == ECheckBoxState::Checked)
 	{
 		OnCheckOneAssetChanged(ECheckBoxState::Checked);
 	}
@@ -339,8 +332,8 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 	{
 		OnCheckDirectoryChanged(ECheckBoxState::Checked);
 	}
-	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
-	OnSearchTextCommitted(FText::FromString(SearchName), ETextCommit::OnEnter);
+	OnSearchPathCommitted(FText::FromString(GetSearchPath()), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(GetSearchName()), ETextCommit::OnEnter);
 	CheckAssetCheckButton();
 }
 
@@ -412,7 +405,7 @@ FReply SCMTTextureFind::ButtonAssetCheckClicked()
 	CopyClipBoardButton->SetEnabled(false);
 	ExportTextButton->SetEnabled(false);
 
-	if (CheckBoxOneAsset == ECheckBoxState::Checked)
+	if (GetCheckBoxOneAsset() == ECheckBoxState::Checked)
 	{
 		TArray<UMaterialInterface*> Materials;
 		TArray<UMaterialFunction*> MaterialFunctions;
@@ -423,14 +416,14 @@ FReply SCMTTextureFind::ButtonAssetCheckClicked()
 	}
 	else
 	{
-		bool CheckMaterial = CheckBoxDirectoryMaterial == ECheckBoxState::Checked;
-		bool CheckMaterialFunction = CheckBoxDirectoryMaterialFunction == ECheckBoxState::Checked;
+		const bool CheckMaterial = (GetCheckBoxDirectoryMaterial() == ECheckBoxState::Checked);
+		const bool CheckMaterialFunction = (GetCheckBoxDirectoryMaterialFunction() == ECheckBoxState::Checked);
 		
 		// search path parse
-		FCUTUtility::SplitStringTokens(SearchPath, &SearchPathTokens);
+		FCUTUtility::SplitStringTokens(GetSearchPath(), &SearchPathTokens);
 		
 		// search text parse
-		FCUTUtility::SplitStringTokens(SearchName, &SearchTokens);
+		FCUTUtility::SplitStringTokens(GetSearchName(), &SearchTokens);
 		
 		MaterialSearcher.SearchStart(SearchPathTokens, SearchTokens,
 				true,
@@ -460,63 +453,61 @@ FReply SCMTTextureFind::ButtonExportTextClicked()
 /** text change event */
 void SCMTTextureFind::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchPath = Text.ToString();
+	SetSearchPath(Text.ToString());
 	CheckAssetCheckButton();
 }
 /** text change event */
 void SCMTTextureFind::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchName = Text.ToString();
+	SetSearchName(Text.ToString());
 	CheckAssetCheckButton();
 }
 
 /** "Check one asset" checkbox changed callback */
 void SCMTTextureFind::OnCheckOneAssetChanged(ECheckBoxState InValue)
 {
-	CheckBoxOneAsset = ECheckBoxState::Checked;
-	CheckBoxDirectory = ECheckBoxState::Unchecked;
+	SetCheckBoxOneAsset(ECheckBoxState::Checked);
 	BoxOneAssetWidget->SetEnabled(true);
 	BoxDirectoryWidget->SetEnabled(false);
-	CheckBoxOneAssetWidget->SetIsChecked(CheckBoxOneAsset);
-	CheckBoxDirectoryWidget->SetIsChecked(CheckBoxDirectory);
+	CheckBoxOneAssetWidget->SetIsChecked(GetCheckBoxOneAsset());
+	CheckBoxDirectoryWidget->SetIsChecked(ECheckBoxState::Unchecked);
 	CheckAssetCheckButton();
 }
 
 /** "Check directory" checkbox changed callback */
 void SCMTTextureFind::OnCheckDirectoryChanged(ECheckBoxState InValue)
 {
-	CheckBoxOneAsset = ECheckBoxState::Unchecked;
-	CheckBoxDirectory = ECheckBoxState::Checked;
+	SetCheckBoxOneAsset(ECheckBoxState::Unchecked);
 	BoxOneAssetWidget->SetEnabled(false);
 	BoxDirectoryWidget->SetEnabled(true);
-	CheckBoxOneAssetWidget->SetIsChecked(CheckBoxOneAsset);
-	CheckBoxDirectoryWidget->SetIsChecked(CheckBoxDirectory);
+	CheckBoxOneAssetWidget->SetIsChecked(GetCheckBoxOneAsset());
+	CheckBoxDirectoryWidget->SetIsChecked(ECheckBoxState::Checked);
 	CheckAssetCheckButton();
 }
 
 /** "check material" checkbox changed callback */
 void SCMTTextureFind::OnCheckDirectoryMaterialChanged(ECheckBoxState InValue)
 {
-	CheckBoxDirectoryMaterial = InValue;
+	SetCheckBoxDirectoryMaterial(InValue);
 }
 
 /** "check material function" checkbox changed callback */
 void SCMTTextureFind::OnCheckDirectoryMaterialFunctionChanged(ECheckBoxState InValue)
 {
-	CheckBoxDirectoryMaterialFunction = InValue;
+	SetCheckBoxDirectoryMaterialFunction(InValue);
 }
 
 /** "Asset Check" Button check status enabled */
 void SCMTTextureFind::CheckAssetCheckButton()
 {
 	bool Enable = true;
-	if (CheckBoxOneAsset == ECheckBoxState::Checked)
+	if (GetCheckBoxOneAsset() == ECheckBoxState::Checked)
 	{
 		Enable = (SelectedMaterial != nullptr) || (SelectedMaterialFunction != nullptr);
 	}
 	else
 	{
-		Enable = (!SearchPath.IsEmpty() && !SearchName.IsEmpty());
+		Enable = (!GetSearchPath().IsEmpty() && !GetSearchName().IsEmpty());
 	}
 	AssetCheckButton->SetEnabled(Enable);
 }
@@ -616,8 +607,8 @@ void SCMTTextureFind::SearchTextureInMaterial(TArray<UMaterialInterface*>& Targe
 	}
 	else
 	{
-		ClipboardText = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-		ClipboardText += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchName);
+		ClipboardText = FString::Printf(TEXT("Search Path: %s\n"), *GetSearchPath());
+		ClipboardText += FString::Printf(TEXT("Search Name: %s\n\n"), *GetSearchName());
 	}
 	
 	for (auto It = TargetMaterialFunction.CreateIterator() ; It ; ++It)

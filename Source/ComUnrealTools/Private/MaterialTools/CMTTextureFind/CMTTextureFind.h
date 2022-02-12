@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #include "MaterialTools/Utility/CMTMaterialSearcher.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "SlateFwd.h"
 #include "Styling/SlateTypes.h"
@@ -158,21 +159,18 @@ private:
 	FString ClipboardText;
 	
 	/** search path text */
-	static FString SearchPath;
+	CUT_DEVSETTINGS_STRING(SearchPath, CMTTextureFindSearchPath);
 	
 	/** search name text */
-	static FString SearchName;
+	CUT_DEVSETTINGS_STRING(SearchName, CMTTextureFindSearchName);
 	
 	/** "Check one asset" result */
-	static ECheckBoxState CheckBoxOneAsset;
-	
-	/** "Check directory" result */
-	static ECheckBoxState CheckBoxDirectory;
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxOneAsset, CMTTextureFindOneAsset);
 	
 	/** "Check Material" result */
-	static ECheckBoxState CheckBoxDirectoryMaterial;
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxDirectoryMaterial, CMTTextureFindDirectoryMaterial);
 	
 	/** "Check Mateiral Function" result */
-	static ECheckBoxState CheckBoxDirectoryMaterialFunction;
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxDirectoryMaterialFunction, CMTTextureFindDirectoryMaterialFunction);
 	
 };

@@ -23,7 +23,6 @@
 
 ////////////////////////////////////
 // SCMTParameterDump
-ECheckBoxState SCMTParameterDump::DispOverrideOnlyState = ECheckBoxState::Unchecked;
 
 
 SCMTParameterDump::~SCMTParameterDump()
@@ -92,7 +91,7 @@ void SCMTParameterDump::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				[
 					SNew(SCheckBox)
-					.IsChecked(DispOverrideOnlyState)
+					.IsChecked(GetDispOverrideOnlyState())
 					.OnCheckStateChanged(this, &SCMTParameterDump::OnDispOverrideOnlyStateChanged)
 				]
 				
@@ -214,7 +213,7 @@ FReply SCMTParameterDump::ButtonAssetCheckClicked()
 	
 	ItemsFound.Empty();
 	
-	const bool bOverridenOnly = (DispOverrideOnlyState == ECheckBoxState::Checked);
+	const bool bOverridenOnly = (GetDispOverrideOnlyState() == ECheckBoxState::Checked);
 	TArray<FMaterialParameterInfo> ScalarParameters;
 	TArray<FMaterialParameterInfo> VectorParameters;
 	TArray<FMaterialParameterInfo> TextureParameters;
@@ -223,7 +222,7 @@ FReply SCMTParameterDump::ButtonAssetCheckClicked()
 	TArray<FMaterialParameterInfo> FontParameters;
 	TArray<FMaterialParameterInfo> VirtualTextureParameters;
 	
-	if (DispOverrideOnlyState == ECheckBoxState::Checked)
+	if (GetDispOverrideOnlyState() == ECheckBoxState::Checked)
 	{
 		// オーバーライドしているパラメーターのみ
 		UMaterialInstance* MaterialInstance = Cast<UMaterialInstance>(SelectedMaterial);
@@ -507,7 +506,6 @@ FString SCMTParameterDump::GetClipboardCsv()
 	}
 	return RetString;
 }
-
 
 
 #undef LOCTEXT_NAMESPACE

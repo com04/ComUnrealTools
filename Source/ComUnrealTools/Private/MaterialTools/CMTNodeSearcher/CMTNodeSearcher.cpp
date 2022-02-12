@@ -4,6 +4,7 @@
 #include "CMTNodeSearcherResult.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 #include "Utility/CUTUtility.h"
 
 #include "AssetData.h"
@@ -25,9 +26,6 @@
 
 ////////////////////////////////////
 // SCMTNodeSearcher
-FString SCMTNodeSearcher::SearchPath = FString("/Game/");
-FString SCMTNodeSearcher::SearchValue = FString("");
-ECheckBoxState SCMTNodeSearcher::CheckMaterialInstance = ECheckBoxState::Checked;
 
 
 SCMTNodeSearcher::~SCMTNodeSearcher()
@@ -63,7 +61,7 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("FindPath", "Enter material path to find references..."))
-				.InitialText(FText::FromString(SearchPath))
+				.InitialText(FText::FromString(GetSearchPath()))
 				.OnTextCommitted(this, &SCMTNodeSearcher::OnSearchPathCommitted)
 			]
 		]
@@ -86,7 +84,7 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("Find", "Enter material or node name, texture name to find references..."))
-				.InitialText(FText::FromString(SearchValue))
+				.InitialText(FText::FromString(GetSearchValue()))
 				.OnTextCommitted(this, &SCMTNodeSearcher::OnSearchTextCommitted)
 			]
 		]
@@ -102,7 +100,7 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SNew(SCheckBox)
-				.IsChecked(CheckMaterialInstance)
+				.IsChecked(GetCheckMaterialInstance())
 				.OnCheckStateChanged(this, &SCMTNodeSearcher::OnCheckMaterialInstanceChanged)
 			]
 			+SHorizontalBox::Slot()
@@ -193,8 +191,8 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 	
 	
 	
-	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
-	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
+	OnSearchPathCommitted(FText::FromString(GetSearchPath()), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(GetSearchValue()), ETextCommit::OnEnter);
 }
 
 
@@ -204,19 +202,19 @@ void SCMTNodeSearcher::Construct(const FArguments& InArgs)
 /** text change event */
 void SCMTNodeSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchPath = Text.ToString();
+	SetSearchPath(Text.ToString());
 	bDirtySearchPath = true;
 	
-	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
+	SearchStartButton->SetEnabled((!GetSearchPath().IsEmpty() && !GetSearchValue().IsEmpty()));
 }
 
 /** text change event */
 void SCMTNodeSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchValue = Text.ToString();
+	SetSearchValue(Text.ToString());
 	bDirtySearchText = true;
 
-	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
+	SearchStartButton->SetEnabled((!GetSearchPath().IsEmpty() && !GetSearchValue().IsEmpty()));
 }
 
 /** Search */
@@ -229,20 +227,20 @@ void SCMTNodeSearcher::SearchStart()
 	}
 	ItemsFound.Empty();
 	
-	HighlightText = FText::FromString(SearchValue);
+	HighlightText = FText::FromString(GetSearchValue());
 	
 
 	// search path parse
 	if (bDirtySearchPath)
 	{
-		FCUTUtility::SplitStringTokens(SearchPath, &SearchPathTokens);
+		FCUTUtility::SplitStringTokens(GetSearchPath(), &SearchPathTokens);
 		bDirtySearchPath = false;
 	}
 	
 	// search text parse
 	if (bDirtySearchText)
 	{
-		FCUTUtility::SplitStringTokens(SearchValue, &SearchTokens);
+		FCUTUtility::SplitStringTokens(GetSearchValue(), &SearchTokens);
 		bDirtySearchText = false;
 	}
 	
@@ -251,7 +249,7 @@ void SCMTNodeSearcher::SearchStart()
 	{
 		MaterialSearcher.SearchStart(SearchPathTokens, TArray<FString>(),
 				true,
-				true, (CheckMaterialInstance == ECheckBoxState::Checked),
+				true, (GetCheckMaterialInstance() == ECheckBoxState::Checked),
 				true);
 	}
 	else
@@ -618,8 +616,8 @@ FReply SCMTNodeSearcher::ButtonExportCsvClicked()
 FString SCMTNodeSearcher::GetClipboardText()
 {
 	FString RetString;
-	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *GetSearchPath());
+	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *GetSearchValue());
 	
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
 	{
@@ -669,6 +667,7 @@ void SCMTNodeSearcher::AddClipboardCsvFromResult(const FCMTNodeSearcherResultSha
 
 
 // Progress Bar --- End
+
 
 #undef LOCTEXT_NAMESPACE
 

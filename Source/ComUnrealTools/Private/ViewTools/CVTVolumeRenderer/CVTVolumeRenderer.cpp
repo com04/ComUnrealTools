@@ -26,8 +26,6 @@
 
 ////////////////////////////////////
 // SCVTVolumeRenderer
-float SCVTVolumeRenderer::LineThickness = 50.0f;
-float SCVTVolumeRenderer::OneShotDuration = 5.0f;
 TArray<FCVTVolumeRendererItemInfo> SCVTVolumeRenderer::ItemInfos;
 const TArray<FLinearColor> SCVTVolumeRenderer::DefaultColorList =
 {
@@ -39,7 +37,6 @@ const TArray<FLinearColor> SCVTVolumeRenderer::DefaultColorList =
 	FLinearColor(0.2f, 0.8f, 0.8f),
 	FLinearColor(0.8f, 0.8f, 0.8f),
 };
-float SCVTVolumeRenderer::RenderDistance = 0.0f;
 bool SCVTVolumeRenderer::bDirtyEditorSettings = true;
 
 
@@ -138,7 +135,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
 					SNew(SSpinBox<float>)
-					.Value(LineThickness)
+					.Value(GetLineThickness())
 					.MinValue(0.0f)
 					.MaxSliderValue(100)
 					.Delta(1.0f)
@@ -160,7 +157,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
 					SNew(SSpinBox<float>)
-					.Value(OneShotDuration)
+					.Value(GetOneShotDuration())
 					.MinValue(0.0f)
 					.MaxSliderValue(30.0f)
 					.Delta(0.1f)
@@ -182,7 +179,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
 					SNew(SSpinBox<float>)
-					.Value(RenderDistance)
+					.Value(GetRenderDistance())
 					.MinValue(0.0f)
 					.MaxSliderValue(100000.0f)
 					.Delta(10.0f)
@@ -259,7 +256,7 @@ void SCVTVolumeRenderer::Tick(const FGeometry& AllottedGeometry, const double In
 	{
 		for (TSharedPtr<FCVTVolumeRendererItem>& Item : RequestOneShotItems)
 		{
-			RenderItem(World, Item, OneShotDuration);
+			RenderItem(World, Item, GetOneShotDuration());
 		}
 		RequestOneShotItems.Empty();
 		for (TArray<TSharedPtr<FCVTVolumeRendererItem>>::TIterator ItemIt(RequestAlwaysItems) ; ItemIt ; ++ItemIt)
@@ -312,15 +309,15 @@ void SCVTVolumeRenderer::OnSetClass(const UClass* InClass)
 // Spin Box  --------
 void SCVTVolumeRenderer::OnSpinBoxLineThicknessChanged(float InValue)
 {
-	LineThickness = InValue;
+	SetLineThickness(InValue);
 }
 void SCVTVolumeRenderer::OnSpinBoxOneShotDurationChanged(float InValue)
 {
-	OneShotDuration = InValue;
+	SetOneShotDuration(InValue);
 }
 void SCVTVolumeRenderer::OnSpinBoxRenderDistanceChanged(float InValue)
 {
-	RenderDistance = InValue;
+	SetRenderDistance(InValue);
 }
 // -------- Spin Box
 
@@ -407,13 +404,13 @@ void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRender
 		TArray<FGeomtryInfo, TInlineAllocator<32>> GeometryInfos;
 		
 		// 距離カリング
-		if ((RenderDistance > 0.01f) && (InWorld->ViewLocationsRenderedLastFrame.Num() > 0))
+		if ((GetRenderDistance() > 0.01f) && (InWorld->ViewLocationsRenderedLastFrame.Num() > 0))
 		{
 			const FVector ActorLocation = TargetActor->GetActorLocation();
 			bool bCulling = true;
 			for (const FVector& ViewLocation : InWorld->ViewLocationsRenderedLastFrame)
 			{
-				if (FVector::Distance(ActorLocation, ViewLocation) <= RenderDistance)
+				if (FVector::Distance(ActorLocation, ViewLocation) <= GetRenderDistance())
 				{
 					bCulling = false;
 					break;
@@ -450,7 +447,7 @@ void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRender
 		}
 		for (const FGeomtryInfo& GeometryInfo : GeometryInfos)
 		{
-			FCUTUtility::DrawBodySetup(InWorld, GeometryInfo.BodySetup, GeometryInfo.Transform, LineColor, SolidColor, InDuration, LineThickness);
+			FCUTUtility::DrawBodySetup(InWorld, GeometryInfo.BodySetup, GeometryInfo.Transform, LineColor, SolidColor, InDuration, GetLineThickness());
 		}
 	}
 }

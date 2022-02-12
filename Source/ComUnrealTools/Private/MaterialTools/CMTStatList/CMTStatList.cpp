@@ -29,9 +29,6 @@
 ////////////////////////////////////
 // SCMTStatList
 
-FString SCMTStatList::SearchValue = FString("/Game/");
-ECheckBoxState SCMTStatList::CheckMaterialInstance = ECheckBoxState::Checked;
-
 const FText& SCMTStatList::GetHeaderNameText()
 {
 	static const FText HeaderNameText(LOCTEXT("HeaderName", "Name"));
@@ -189,7 +186,7 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("StatListFind", "Enter material path to find references..."))
-				.InitialText(FText::FromString(SearchValue))
+				.InitialText(FText::FromString(GetSearchValue()))
 				.OnTextCommitted(this, &SCMTStatList::OnSearchTextCommitted)
 			]
 		]
@@ -205,7 +202,7 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SNew(SCheckBox)
-				.IsChecked(CheckMaterialInstance)
+				.IsChecked(GetCheckMaterialInstance())
 				.OnCheckStateChanged(this, &SCMTStatList::OnCheckMaterialInstanceChanged)
 			]
 			+SHorizontalBox::Slot()
@@ -293,7 +290,7 @@ void SCMTStatList::Construct(const FArguments& InArgs)
 		]
 	];
 	
-	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(GetSearchValue()), ETextCommit::OnEnter);
 }
 
 FReply SCMTStatList::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) 
@@ -309,9 +306,9 @@ FReply SCMTStatList::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InK
 /** text commit event */
 void SCMTStatList::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchValue = Text.ToString();
+	SetSearchValue(Text.ToString());
 	
-	SearchStartButton->SetEnabled(!SearchValue.IsEmpty());
+	SearchStartButton->SetEnabled(!GetSearchValue().IsEmpty());
 }
 
 void SCMTStatList::FinishSearch()
@@ -863,7 +860,7 @@ TOptional<float> SCMTStatList::GetProgressBarPercent() const
 FReply SCMTStatList::ButtonSearchStartClicked()
 {
 	// search text parse
-	FCUTUtility::SplitStringTokens(SearchValue, &SearchTokens);
+	FCUTUtility::SplitStringTokens(GetSearchValue(), &SearchTokens);
 
 	// last result clear
 	ResultList.Empty();
@@ -873,7 +870,7 @@ FReply SCMTStatList::ButtonSearchStartClicked()
 	{
 		MaterialSearcher.SearchStart(SearchTokens, TArray<FString>(),
 				true,
-				true, (CheckMaterialInstance == ECheckBoxState::Checked),
+				true, (GetCheckMaterialInstance() == ECheckBoxState::Checked),
 				false);
 	}
 	return FReply::Handled();
@@ -908,7 +905,7 @@ FReply SCMTStatList::ButtonExportCsvClicked()
 FString SCMTStatList::GetClipboardText()
 {
 	FString RetString;
-	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchValue);
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *GetSearchValue());
 	RetString += FString::Printf(TEXT("Name,Domain,ShadingModel,BlendMode,Instruction,TextureNum,TextureSize,UseRenderAfterDOF,UsePositionOffset,UseDepthOffset,UseRefraction\n"));
 	
 	for (auto It = ResultList.CreateConstIterator() ; It ; ++It)

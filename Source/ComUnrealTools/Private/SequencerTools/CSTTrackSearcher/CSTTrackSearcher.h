@@ -11,6 +11,7 @@
 
 #include "CSTTrackSearcherResult.h"
 #include "MaterialTools/Utility/CMTMaterialSearcher.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 
 struct FAssetData;
@@ -159,11 +160,11 @@ private:
 	static const FString DirectorySeparateString;
 
 	/** search path text */
-	static FString SearchPath;
+	CUT_DEVSETTINGS_STRING(SearchPath, CSTTrackSearcherSearchPath);
 	
 	/** search text */
-	static FString SearchValue;
+	CUT_DEVSETTINGS_STRING(SearchValue, CSTTrackSearcherSearchName);
 	
-	static ECheckBoxState CheckBoxUsePropertySearch;
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxUsePropertySearch, CSTTrackSearcherUsePropertySearch);
 	
 };

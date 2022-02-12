@@ -20,9 +20,7 @@
 
 
 ////////////////////////////////////
-// SCVTRenderTargetViewer]
-ECheckBoxState SCVTRenderTargetViewer::CheckPreviewWithoutAlpha = ECheckBoxState::Checked;
-int32 SCVTRenderTargetViewer::PreviewSize = 128;
+// SCVTRenderTargetViewer
 
 
 SCVTRenderTargetViewer::~SCVTRenderTargetViewer()
@@ -62,7 +60,7 @@ void SCVTRenderTargetViewer::Construct(const FArguments& InArgs)
 				.AutoWidth()
 				[
 					SNew(SCheckBox)
-					.IsChecked(CheckPreviewWithoutAlpha)
+					.IsChecked(GetCheckPreviewWithoutAlpha())
 					.OnCheckStateChanged(this, &SCVTRenderTargetViewer::OnCheckPreviewWithoutAlphaChanged)
 				]
 				
@@ -94,7 +92,7 @@ void SCVTRenderTargetViewer::Construct(const FArguments& InArgs)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
 					SNew(SSpinBox<int32>)
-					.Value(PreviewSize)
+					.Value(GetPreviewSize())
 					.MinValue(32)
 					.MaxValue(1024)
 					.OnValueChanged(this, &SCVTRenderTargetViewer::OnSpinBoxPreviewSizeChanged)
@@ -171,14 +169,15 @@ FText SCVTRenderTargetViewer::GetHeaderImageText()
 	static const FText HeaderImageText(LOCTEXT("HeaderImage", "Texture"));
 	return HeaderImageText;
 }
-FVector2D SCVTRenderTargetViewer::GetPreviewSize()
+FVector2D SCVTRenderTargetViewer::GetPreviewSizeV2()
 {
-	return FVector2D(PreviewSize, PreviewSize);
+	int32 LocalPreviewSize = GetPreviewSize();
+	return FVector2D(LocalPreviewSize, LocalPreviewSize);
 }
 
 bool SCVTRenderTargetViewer::IsPreviewWithoutAlpha()
 {
-	return CheckPreviewWithoutAlpha == ECheckBoxState::Checked;
+	return GetCheckPreviewWithoutAlpha() == ECheckBoxState::Checked;
 }
 
 // 使用中のRenderTargetを検索して結果に反映する
@@ -240,7 +239,7 @@ void SCVTRenderTargetViewer::RefreshResultPreview()
 // Check Box  --------
 void SCVTRenderTargetViewer::OnCheckPreviewWithoutAlphaChanged(ECheckBoxState InValue)
 {
-	CheckPreviewWithoutAlpha = InValue;
+	SetCheckPreviewWithoutAlpha(InValue);
 	RefreshResultPreview();
 }
 // -------- Check Box
@@ -248,7 +247,7 @@ void SCVTRenderTargetViewer::OnCheckPreviewWithoutAlphaChanged(ECheckBoxState In
 // Spin Box  --------
 void SCVTRenderTargetViewer::OnSpinBoxPreviewSizeChanged(int32 InValue)
 {
-	PreviewSize = InValue;
+	SetPreviewSize(InValue);
 	RefreshResultPreview();
 }
 // -------- Spin Box

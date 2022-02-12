@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "CVTVolumeRendererItem.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "SlateFwd.h"
 #include "Styling/SlateTypes.h"
@@ -99,13 +100,14 @@ private:
 	TArray<TSharedPtr<FCVTVolumeRendererItem>> RequestOneShotItems;
 	
 	// 線の太さ
-	static float LineThickness;
+	CUT_DEVSETTINGS_FLOAT(LineThickness, CVTVolumeRendererLineThickness);
 	// OneShotの際の描画時間
-	static float OneShotDuration;
+	CUT_DEVSETTINGS_FLOAT(OneShotDuration, CVTVolumeRendererOneShotDuration);
+	// 表示距離
+	CUT_DEVSETTINGS_FLOAT(RenderDistance, CVTVolumeRendererRenderDistance);
+	
 	static TArray<FCVTVolumeRendererItemInfo> ItemInfos;
 	static const TArray<FLinearColor> DefaultColorList;
-	// 表示距離
-	static float RenderDistance;
 
 	// エディターの環境設定に変更があったか
 	static bool bDirtyEditorSettings;

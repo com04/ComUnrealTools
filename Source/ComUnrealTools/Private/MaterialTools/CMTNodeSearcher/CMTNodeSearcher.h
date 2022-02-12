@@ -11,6 +11,7 @@
 
 #include "CMTNodeSearcherResult.h"
 #include "MaterialTools/Utility/CMTMaterialSearcher.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 
 typedef TSharedPtr<class FCMTNodeSearcherResult> FCMTNodeSearcherResultShare;
@@ -71,7 +72,7 @@ private:
 	// Check box --- Begin
 	
 	/** "check material instance" checkbox changed callback */
-	void OnCheckMaterialInstanceChanged(ECheckBoxState InValue) { CheckMaterialInstance = InValue; }
+	void OnCheckMaterialInstanceChanged(ECheckBoxState InValue) { SetCheckMaterialInstance(InValue); }
 	
 	// Check box --- End
 	
@@ -156,12 +157,11 @@ private:
 	
 	
 	
+	/* DeveloperSettings管理 */
 	/** search path text */
-	static FString SearchPath;
-	
+	CUT_DEVSETTINGS_STRING(SearchPath, CMTNodeSearcherSearchPath);
 	/** search text */
-	static FString SearchValue;
-	
+	CUT_DEVSETTINGS_STRING(SearchValue, CMTNodeSearcherSearchName);
 	/** "check material instance" result */
-	static ECheckBoxState CheckMaterialInstance;
+	CUT_DEVSETTINGS_CHECKBOX(CheckMaterialInstance, CMTNodeSearcherCheckMaterialInstance);
 };

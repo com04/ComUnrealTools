@@ -7,6 +7,7 @@
 #include "SlateFwd.h"
 #include "Styling/SlateTypes.h"
 #include "Widgets/SCompoundWidget.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 
 class SImage;
@@ -44,7 +45,7 @@ public:
 	static FText GetHeaderFormatText();
 	static FText GetHeaderSizeText();
 	static FText GetHeaderImageText();
-	static FVector2D GetPreviewSize();
+	static FVector2D GetPreviewSizeV2();
 	static bool IsPreviewWithoutAlpha();
 
 protected:
@@ -76,7 +77,7 @@ private:
 	TArray<TSharedPtr<FCVTRenderTargetViewerResult>> ResultList;
 	
 	// アルファ無しでプレビュー
-	static ECheckBoxState CheckPreviewWithoutAlpha;
+	CUT_DEVSETTINGS_CHECKBOX(CheckPreviewWithoutAlpha, CVTRenderTargetViewerPreviewWithoutAlpha);
 	// プレビューサイズ
-	static int32 PreviewSize;
+	CUT_DEVSETTINGS_INT(PreviewSize, CVTRenderTargetViewerPreviewSize);
 };

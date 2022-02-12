@@ -28,20 +28,6 @@
 
 ////////////////////////////////////
 // SCMTParameterSearcher
-FString SCMTParameterSearcher::SearchPath = FString("/Game/");
-FString SCMTParameterSearcher::SearchValue = FString("");
-float SCMTParameterSearcher::ScalarValue = 0.0f;
-FLinearColor SCMTParameterSearcher::VectorValue = FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
-FString SCMTParameterSearcher::TextureValue = FString("");
-ECMTParameterSearcherVectorFunction SCMTParameterSearcher::VectorFunction = ECMTParameterSearcherVectorFunction::All;
-ECMTParameterSearcherFunction SCMTParameterSearcher::MatchFunction = ECMTParameterSearcherFunction::Equals;
-SCMTParameterSearcher::ESelectType SCMTParameterSearcher::SelectType = SCMTParameterSearcher::ESelectType::Scalar;
-ECheckBoxState SCMTParameterSearcher::CheckBoxStateVectorR = ECheckBoxState::Checked;
-ECheckBoxState SCMTParameterSearcher::CheckBoxStateVectorG = ECheckBoxState::Checked;
-ECheckBoxState SCMTParameterSearcher::CheckBoxStateVectorB = ECheckBoxState::Checked;
-ECheckBoxState SCMTParameterSearcher::CheckBoxStateVectorA = ECheckBoxState::Checked;
-ECheckBoxState SCMTParameterSearcher::CheckBoxStateStaticSwitchValue = ECheckBoxState::Checked;
-ECheckBoxState SCMTParameterSearcher::CheckBoxStateOverrideOnly = ECheckBoxState::Unchecked;
 
 
 SCMTParameterSearcher::~SCMTParameterSearcher()
@@ -106,7 +92,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("FindPath", "Enter material path to find references..."))
-				.InitialText(FText::FromString(SearchPath))
+				.InitialText(FText::FromString(GetSearchPath()))
 				.OnTextCommitted(this, &SCMTParameterSearcher::OnSearchPathCommitted)
 			]
 		]
@@ -129,7 +115,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("Find", "Enter material or node name, texture name to find references..."))
-				.InitialText(FText::FromString(SearchValue))
+				.InitialText(FText::FromString(GetSearchValue()))
 				.OnTextCommitted(this, &SCMTParameterSearcher::OnSearchTextCommitted)
 			]
 		]
@@ -145,7 +131,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SAssignNew(ScalarCheckBox, SCheckBox)
-				.IsChecked(SelectType == ESelectType::Scalar ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+				.IsChecked(GetSelectType() == ESelectType::Scalar ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
 				.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxScalarChanged)
 			]
 			+SHorizontalBox::Slot()
@@ -166,7 +152,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				[
 					SNew(SSpinBox<float>)
 					SPINBOX_OPTION
-					.Value(ScalarValue)
+					.Value(GetScalarValue())
 					.OnValueChanged(this, &SCMTParameterSearcher::OnSpinBoxScalarValueChanged)
 				]
 			]
@@ -184,7 +170,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SAssignNew(VectorCheckBox, SCheckBox)
-				.IsChecked(SelectType == ESelectType::Vector ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+				.IsChecked(GetSelectType() == ESelectType::Vector ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
 				.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxVectorChanged)
 			]
 			+SHorizontalBox::Slot()
@@ -235,7 +221,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 						.VAlign(VAlign_Center)
 						[
 							SNew(SCheckBox)
-							.IsChecked(CheckBoxStateVectorR)
+							.IsChecked(GetCheckBoxStateVectorR())
 							.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxVectorRChanged)
 						]
 						+SHorizontalBox::Slot()
@@ -260,7 +246,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 								[
 									SNew(SSpinBox<float>)
 									SPINBOX_OPTION
-									.Value(VectorValue.R)
+									.Value(GetVectorValue().R)
 									.OnValueChanged(this, &SCMTParameterSearcher::OnSpinBoxVectorRValueChanged)
 								]
 							]
@@ -278,7 +264,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 						.VAlign(VAlign_Center)
 						[
 							SNew(SCheckBox)
-							.IsChecked(CheckBoxStateVectorG)
+							.IsChecked(GetCheckBoxStateVectorG())
 							.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxVectorGChanged)
 						]
 						+SHorizontalBox::Slot()
@@ -303,7 +289,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 								[
 									SNew(SSpinBox<float>)
 									SPINBOX_OPTION
-									.Value(VectorValue.G)
+									.Value(GetVectorValue().G)
 									.OnValueChanged(this, &SCMTParameterSearcher::OnSpinBoxVectorGValueChanged)
 								]
 							]
@@ -321,7 +307,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 						.VAlign(VAlign_Center)
 						[
 							SNew(SCheckBox)
-							.IsChecked(CheckBoxStateVectorB)
+							.IsChecked(GetCheckBoxStateVectorB())
 							.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxVectorBChanged)
 						]
 						+SHorizontalBox::Slot()
@@ -346,7 +332,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 								[
 									SNew(SSpinBox<float>)
 									SPINBOX_OPTION
-									.Value(VectorValue.B)
+									.Value(GetVectorValue().B)
 									.OnValueChanged(this, &SCMTParameterSearcher::OnSpinBoxVectorBValueChanged)
 								]
 							]
@@ -364,7 +350,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 						.VAlign(VAlign_Center)
 						[
 							SNew(SCheckBox)
-							.IsChecked(CheckBoxStateVectorA)
+							.IsChecked(GetCheckBoxStateVectorA())
 							.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxVectorAChanged)
 						]
 						+SHorizontalBox::Slot()
@@ -389,7 +375,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 								[
 									SNew(SSpinBox<float>)
 									SPINBOX_OPTION
-									.Value(VectorValue.A)
+									.Value(GetVectorValue().A)
 									.OnValueChanged(this, &SCMTParameterSearcher::OnSpinBoxVectorAValueChanged)
 								]
 							]
@@ -410,7 +396,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SAssignNew(TextureCheckBox, SCheckBox)
-				.IsChecked(SelectType == ESelectType::Texture ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+				.IsChecked(GetSelectType() == ESelectType::Texture ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
 				.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxTextureChanged)
 			]
 			+SHorizontalBox::Slot()
@@ -430,7 +416,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				[
 					SNew(SSearchBox)
 					.HintText(LOCTEXT("TextureValue", "検索したいテクスチャ名を入れてください（部分一致）"))
-					.InitialText(FText::FromString(TextureValue))
+					.InitialText(FText::FromString(GetTextureValue()))
 					.OnTextCommitted(this, &SCMTParameterSearcher::OnTextureValueCommitted)
 				]
 			]
@@ -447,7 +433,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.VAlign(VAlign_Center)
 			[
 				SAssignNew(StaticSwitchCheckBox, SCheckBox)
-				.IsChecked(SelectType == ESelectType::StaticSwitch ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
+				.IsChecked(GetSelectType() == ESelectType::StaticSwitch ? ECheckBoxState::Checked : ECheckBoxState::Unchecked)
 				.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxStaticSwitchChanged)
 			]
 			+SHorizontalBox::Slot()
@@ -466,7 +452,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 				.Padding(FMargin(0.0f))
 				[
 					SNew(SCheckBox)
-					.IsChecked(CheckBoxStateStaticSwitchValue)
+					.IsChecked(GetCheckBoxStateStaticSwitchValue())
 					.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxStaticSwitchValueChanged)
 				]
 			]
@@ -504,7 +490,7 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 			.Padding(30.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SNew(SCheckBox)
-				.IsChecked(CheckBoxStateOverrideOnly)
+				.IsChecked(GetCheckBoxStateOverrideOnly())
 				.OnCheckStateChanged(this, &SCMTParameterSearcher::OnCheckBoxOverrideOnlyChanged)
 			]
 			// override only
@@ -597,13 +583,13 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 	
 	
 	// 前回の状態を復帰。Enabledでの灰色化対応。
-	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
-	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
+	OnSearchPathCommitted(FText::FromString(GetSearchPath()), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(GetSearchValue()), ETextCommit::OnEnter);
 	SetupCheckBoxType();
-	OnCheckBoxVectorRChanged(CheckBoxStateVectorR);
-	OnCheckBoxVectorGChanged(CheckBoxStateVectorG);
-	OnCheckBoxVectorBChanged(CheckBoxStateVectorB);
-	OnCheckBoxVectorAChanged(CheckBoxStateVectorA);
+	OnCheckBoxVectorRChanged(GetCheckBoxStateVectorR());
+	OnCheckBoxVectorGChanged(GetCheckBoxStateVectorG());
+	OnCheckBoxVectorBChanged(GetCheckBoxStateVectorB());
+	OnCheckBoxVectorAChanged(GetCheckBoxStateVectorA());
 }
 
 FReply SCMTParameterSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) 
@@ -617,19 +603,19 @@ FReply SCMTParameterSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyE
 /** text change event */
 void SCMTParameterSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchPath = Text.ToString();
+	SetSearchPath(Text.ToString());
 	bDirtySearchPath = true;
 	
-	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
+	SearchStartButton->SetEnabled((!GetSearchPath().IsEmpty() && !GetSearchValue().IsEmpty()));
 }
 
 /** text change event */
 void SCMTParameterSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchValue = Text.ToString();
+	SetSearchValue(Text.ToString());
 	bDirtySearchText = true;
 	
-	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
+	SearchStartButton->SetEnabled((!GetSearchPath().IsEmpty() && !GetSearchValue().IsEmpty()));
 }
 
 /** Search */
@@ -638,14 +624,14 @@ void SCMTParameterSearcher::SearchStart()
 	// search path parse
 	if (bDirtySearchPath)
 	{
-		FCUTUtility::SplitStringTokens(SearchPath, &SearchPathTokens);
+		FCUTUtility::SplitStringTokens(GetSearchPath(), &SearchPathTokens);
 		bDirtySearchPath = false;
 	}
 	
 	// search text parse
 	if (bDirtySearchText)
 	{
-		FCUTUtility::SplitStringTokens(SearchValue, &SearchTokens);
+		FCUTUtility::SplitStringTokens(GetSearchValue(), &SearchTokens);
 		bDirtySearchText = false;
 	}
 	
@@ -667,7 +653,7 @@ void SCMTParameterSearcher::SearchStart()
 	else
 	{
 		bool bNonNumericError = false;
-		switch (MatchFunction)
+		switch (GetMatchFunction())
 		{
 		case ECMTParameterSearcherFunction::GreaterThan:
 		case ECMTParameterSearcherFunction::GreaterThanEquals:
@@ -678,7 +664,7 @@ void SCMTParameterSearcher::SearchStart()
 		}
 		bool bError = false;
 		FString ErrorTypeString;
-		switch (SelectType)
+		switch (GetSelectType())
 		{
 		case ESelectType::Texture:
 			if (bNonNumericError)
@@ -719,7 +705,7 @@ void SCMTParameterSearcher::SearchStart()
 	
 	
 	// 検索開始
-	HighlightText = FText::FromString(SearchValue);
+	HighlightText = FText::FromString(GetSearchValue());
 	
 	MaterialSearcher.SearchStart(SearchPathTokens, TArray<FString>(),
 			true,
@@ -742,7 +728,7 @@ void SCMTParameterSearcher::FinishSearch()
 		
 		bool bFindMatch = false;
 		FText ValueText;
-		switch (SelectType)
+		switch (GetSelectType())
 		{
 		case ESelectType::Scalar:
 			bFindMatch = CheckMaterialParameterInfoScalar(Material, ValueText);
@@ -774,10 +760,10 @@ void SCMTParameterSearcher::FinishSearch()
 		
 		bool bFindMatch = false;
 		FText ValueText;
-		switch (SelectType)
+		switch (GetSelectType())
 		{
 		case ESelectType::Scalar:
-			if (CheckBoxStateOverrideOnly == ECheckBoxState::Checked)
+			if (GetCheckBoxStateOverrideOnly() == ECheckBoxState::Checked)
 			{
 				for (const FScalarParameterValue& ParameterValue : MaterialInstance->ScalarParameterValues)
 				{
@@ -794,7 +780,7 @@ void SCMTParameterSearcher::FinishSearch()
 			}
 			break;
 		case ESelectType::Vector:
-			if (CheckBoxStateOverrideOnly == ECheckBoxState::Checked)
+			if (GetCheckBoxStateOverrideOnly() == ECheckBoxState::Checked)
 			{
 				for (const FVectorParameterValue& ParameterValue : MaterialInstance->VectorParameterValues)
 				{
@@ -811,7 +797,7 @@ void SCMTParameterSearcher::FinishSearch()
 			}
 			break;
 		case ESelectType::Texture:
-			if (CheckBoxStateOverrideOnly == ECheckBoxState::Checked)
+			if (GetCheckBoxStateOverrideOnly() == ECheckBoxState::Checked)
 			{
 				for (const FTextureParameterValue& ParameterValue : MaterialInstance->TextureParameterValues)
 				{
@@ -828,7 +814,7 @@ void SCMTParameterSearcher::FinishSearch()
 			}
 			break;
 		case ESelectType::StaticSwitch:
-			if (CheckBoxStateOverrideOnly == ECheckBoxState::Checked)
+			if (GetCheckBoxStateOverrideOnly() == ECheckBoxState::Checked)
 			{
 				for (const FStaticSwitchParameter& ParameterValue : MaterialInstance->GetStaticParameters().StaticSwitchParameters)
 				{
@@ -885,7 +871,7 @@ void SCMTParameterSearcher::OnCheckBoxScalarChanged(ECheckBoxState InValue)
 {
 	if (InValue == ECheckBoxState::Checked)
 	{
-		SelectType = ESelectType::Scalar;
+		SetSelectType(ESelectType::Scalar);
 	}
 	SetupCheckBoxType();
 }
@@ -893,7 +879,7 @@ void SCMTParameterSearcher::OnCheckBoxVectorChanged(ECheckBoxState InValue)
 {
 	if (InValue == ECheckBoxState::Checked)
 	{
-		SelectType = ESelectType::Vector;
+		SetSelectType(ESelectType::Vector);
 	}
 	SetupCheckBoxType();
 }
@@ -901,7 +887,7 @@ void SCMTParameterSearcher::OnCheckBoxTextureChanged(ECheckBoxState InValue)
 {
 	if (InValue == ECheckBoxState::Checked)
 	{
-		SelectType = ESelectType::Texture;
+		SetSelectType(ESelectType::Texture);
 	}
 	SetupCheckBoxType();
 }
@@ -909,14 +895,14 @@ void SCMTParameterSearcher::OnCheckBoxStaticSwitchChanged(ECheckBoxState InValue
 {
 	if (InValue == ECheckBoxState::Checked)
 	{
-		SelectType = ESelectType::StaticSwitch;
+		SetSelectType(ESelectType::StaticSwitch);
 	}
 	SetupCheckBoxType();
 }
 void SCMTParameterSearcher::SetupCheckBoxType()
 {
 #define SETUP(Type) { \
-		const bool bEnabled = (SelectType == ESelectType::Type);\
+		const bool bEnabled = (GetSelectType() == ESelectType::Type);\
 		Type##GroupWidget->SetEnabled(bEnabled); \
 		Type##CheckBox->SetIsChecked(bEnabled ? ECheckBoxState::Checked : ECheckBoxState::Unchecked); \
 	}
@@ -929,61 +915,61 @@ void SCMTParameterSearcher::SetupCheckBoxType()
 }
 void SCMTParameterSearcher::OnCheckBoxVectorRChanged(ECheckBoxState InValue)
 {
-	CheckBoxStateVectorR = InValue;
-	VectorRGroupWidget->SetEnabled(CheckBoxStateVectorR == ECheckBoxState::Checked);
+	SetCheckBoxStateVectorR(InValue);
+	VectorRGroupWidget->SetEnabled(InValue == ECheckBoxState::Checked);
 }
 void SCMTParameterSearcher::OnCheckBoxVectorGChanged(ECheckBoxState InValue)
 {
-	CheckBoxStateVectorG = InValue;
-	VectorGGroupWidget->SetEnabled(CheckBoxStateVectorG == ECheckBoxState::Checked);
+	SetCheckBoxStateVectorG(InValue);
+	VectorGGroupWidget->SetEnabled(InValue == ECheckBoxState::Checked);
 }
 void SCMTParameterSearcher::OnCheckBoxVectorBChanged(ECheckBoxState InValue)
 {
-	CheckBoxStateVectorB = InValue;
-	VectorBGroupWidget->SetEnabled(CheckBoxStateVectorB == ECheckBoxState::Checked);
+	SetCheckBoxStateVectorB(InValue);
+	VectorBGroupWidget->SetEnabled(InValue == ECheckBoxState::Checked);
 }
 void SCMTParameterSearcher::OnCheckBoxVectorAChanged(ECheckBoxState InValue)
 {
-	CheckBoxStateVectorA = InValue;
-	VectorAGroupWidget->SetEnabled(CheckBoxStateVectorA == ECheckBoxState::Checked);
+	SetCheckBoxStateVectorA(InValue);
+	VectorAGroupWidget->SetEnabled(InValue == ECheckBoxState::Checked);
 }
 void SCMTParameterSearcher::OnCheckBoxStaticSwitchValueChanged(ECheckBoxState InValue)
 {
-	CheckBoxStateStaticSwitchValue = InValue;
+	SetCheckBoxStateStaticSwitchValue(InValue);
 }
 void SCMTParameterSearcher::OnCheckBoxOverrideOnlyChanged(ECheckBoxState InValue)
 {
-	CheckBoxStateOverrideOnly = InValue;
+	SetCheckBoxStateOverrideOnly(InValue);
 }
 // Check box --- End
 
 // SSpinBox --- Begin
 void SCMTParameterSearcher::OnSpinBoxScalarValueChanged(float InValue)
 {
-	ScalarValue = InValue;
+	SetScalarValue(InValue);
 }
 void SCMTParameterSearcher::OnSpinBoxVectorRValueChanged(float InValue)
 {
-	VectorValue.R = InValue;
+	GetVectorValueRef().R = InValue;
 }
 void SCMTParameterSearcher::OnSpinBoxVectorGValueChanged(float InValue)
 {
-	VectorValue.G = InValue;
+	GetVectorValueRef().G = InValue;
 }
 void SCMTParameterSearcher::OnSpinBoxVectorBValueChanged(float InValue)
 {
-	VectorValue.B = InValue;
+	GetVectorValueRef().B = InValue;
 }
 void SCMTParameterSearcher::OnSpinBoxVectorAValueChanged(float InValue)
 {
-	VectorValue.A = InValue;
+	GetVectorValueRef().A = InValue;
 }
 // SSpinBox --- End
 
 // TextureValue --- Begin
 void SCMTParameterSearcher::OnTextureValueCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	TextureValue = Text.ToString();
+	SetTextureValue(Text.ToString());
 }
 // TextureValue --- End
 
@@ -1015,11 +1001,11 @@ FText SCMTParameterSearcher::GetVectorFunctionText(ECMTParameterSearcherVectorFu
 }
 FText SCMTParameterSearcher::GetSelectionVectorFunctionText() const
 {
-	return GetVectorFunctionText(VectorFunction);
+	return GetVectorFunctionText(GetVectorFunction());
 }
 void SCMTParameterSearcher::OnSelectionChangedVectorFunction(TSharedPtr<ECMTParameterSearcherVectorFunction> InFunction, ESelectInfo::Type InSelectInfo)
 {
-	VectorFunction = *InFunction;
+	SetVectorFunction(*InFunction);
 }
 
 TSharedRef<SWidget> SCMTParameterSearcher::GenerateFunctionItem(TSharedPtr<ECMTParameterSearcherFunction> InFunction)
@@ -1064,11 +1050,11 @@ FText SCMTParameterSearcher::GetFunctionText(ECMTParameterSearcherFunction InFun
 }
 FText SCMTParameterSearcher::GetSelectionFunctionText() const
 {
-	return GetFunctionText(MatchFunction);
+	return GetFunctionText(GetMatchFunction());
 }
 void SCMTParameterSearcher::OnSelectionChangedFunction(TSharedPtr<ECMTParameterSearcherFunction> InFunction, ESelectInfo::Type InSelectInfo)
 {
-	MatchFunction = *InFunction;
+	SetMatchFunction(*InFunction);
 }
 // SComboBox --- End
 
@@ -1192,8 +1178,8 @@ FReply SCMTParameterSearcher::ButtonExportCSVClicked()
 FString SCMTParameterSearcher::GetResultText()
 {
 	FString RetString;
-	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *GetSearchPath());
+	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *GetSearchValue());
 	
 	
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)
@@ -1313,10 +1299,10 @@ bool SCMTParameterSearcher::CheckMaterialParameterValueScalar(const FMaterialPar
 {
 	bool bRetMatch = false;
 	// 該当のパラメーター名の変数が有るか
-	if (InParameterInfo.Name.Compare(*SearchValue) == 0)
+	if (InParameterInfo.Name.Compare(*GetSearchValue()) == 0)
 	{
 		// 比較関数が一致するか
-		if (CheckFunction(ScalarValue, InParameterValue))
+		if (CheckFunction(GetScalarValue(), InParameterValue))
 		{
 			bRetMatch = true;
 			OutValueText = FText::FromString(FString::Printf(TEXT("%f"), InParameterValue));
@@ -1328,7 +1314,7 @@ bool SCMTParameterSearcher::CheckMaterialParameterValueVector(const FMaterialPar
 {
 	bool bRetMatch = false;
 	// 該当のパラメーター名の変数が有るか
-	if (InParameterInfo.Name.Compare(*SearchValue) == 0)
+	if (InParameterInfo.Name.Compare(*GetSearchValue()) == 0)
 	{
 		// 比較関数が一致するか
 		if (CheckFunctionVector(InParameterValue))
@@ -1345,7 +1331,7 @@ bool SCMTParameterSearcher::CheckMaterialParameterValueTexture(const FMaterialPa
 {
 	bool bRetMatch = false;
 	// 該当のパラメーター名の変数が有るか
-	if (InParameterInfo.Name.Compare(*SearchValue) == 0)
+	if (InParameterInfo.Name.Compare(*GetSearchValue()) == 0)
 	{
 		// 比較関数が一致するか
 		if (CheckFunctionTexture(InParameterValue))
@@ -1362,10 +1348,10 @@ bool SCMTParameterSearcher::CheckMaterialParameterValueStaticSwitch(const FMater
 {
 	bool bRetMatch = false;
 	// 該当のパラメーター名の変数が有るか
-	if (InParameterInfo.Name.Compare(*SearchValue) == 0)
+	if (InParameterInfo.Name.Compare(*GetSearchValue()) == 0)
 	{
 		// 比較関数が一致するか
-		if (CheckFunctionBool(CheckBoxStateStaticSwitchValue == ECheckBoxState::Checked, bInParameterValue))
+		if (CheckFunctionBool(GetCheckBoxStateStaticSwitchValue() == ECheckBoxState::Checked, bInParameterValue))
 		{
 			bRetMatch = true;
 			OutValueText = FText::FromString(FString::Printf(TEXT("%s"),
@@ -1378,7 +1364,7 @@ bool SCMTParameterSearcher::CheckMaterialParameterValueStaticSwitch(const FMater
 bool SCMTParameterSearcher::CheckFunction(float MatchValue, float Value)
 {
 	bool bRetMatch = false;
-	switch (MatchFunction)
+	switch (GetMatchFunction())
 	{
 	case ECMTParameterSearcherFunction::Equals:
 		bRetMatch = FMath::IsNearlyEqual(MatchValue, Value); 
@@ -1408,7 +1394,7 @@ bool SCMTParameterSearcher::CheckFunction(float MatchValue, float Value)
 bool SCMTParameterSearcher::CheckFunctionBool(bool bMatchBalue, bool bValue)
 {
 	bool bRetMatch = false;
-	switch (MatchFunction)
+	switch (GetMatchFunction())
 	{
 	case ECMTParameterSearcherFunction::Equals:
 		bRetMatch = (bMatchBalue == bValue);
@@ -1432,26 +1418,26 @@ bool SCMTParameterSearcher::CheckFunctionBool(bool bMatchBalue, bool bValue)
 bool SCMTParameterSearcher::CheckFunctionVector(FLinearColor Value)
 {
 	bool bRetMatch = false;
-	switch (VectorFunction)
+	switch (GetVectorFunction())
 	{
 	case ECMTParameterSearcherVectorFunction::All:
 		{
 			bool bMatch = true;
 			bool bCheck = false;	// チェック処理したか（全部チェックOFFの際の対処）
-			if (CheckBoxStateVectorR == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(VectorValue.R, Value.R); }
-			if (CheckBoxStateVectorG == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(VectorValue.G, Value.G); }
-			if (CheckBoxStateVectorB == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(VectorValue.B, Value.B); }
-			if (CheckBoxStateVectorA == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(VectorValue.A, Value.A); }
+			if (GetCheckBoxStateVectorR() == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(GetVectorValue().R, Value.R); }
+			if (GetCheckBoxStateVectorG() == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(GetVectorValue().G, Value.G); }
+			if (GetCheckBoxStateVectorB() == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(GetVectorValue().B, Value.B); }
+			if (GetCheckBoxStateVectorA() == ECheckBoxState::Checked)	{ bCheck = true; bMatch = bMatch && CheckFunction(GetVectorValue().A, Value.A); }
 			bRetMatch = bCheck && bMatch;
 		}
 		break;
 	case ECMTParameterSearcherVectorFunction::Any:
 		{
 			bool bMatch = false;
-			if (CheckBoxStateVectorR == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(VectorValue.R, Value.R);
-			if (CheckBoxStateVectorG == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(VectorValue.G, Value.G);
-			if (CheckBoxStateVectorB == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(VectorValue.B, Value.B);
-			if (CheckBoxStateVectorA == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(VectorValue.A, Value.A);
+			if (GetCheckBoxStateVectorR() == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(GetVectorValue().R, Value.R);
+			if (GetCheckBoxStateVectorG() == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(GetVectorValue().G, Value.G);
+			if (GetCheckBoxStateVectorB() == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(GetVectorValue().B, Value.B);
+			if (GetCheckBoxStateVectorA() == ECheckBoxState::Checked)	bMatch = bMatch || CheckFunction(GetVectorValue().A, Value.A);
 			bRetMatch = bMatch;
 		}
 		break;
@@ -1467,26 +1453,26 @@ bool SCMTParameterSearcher::CheckFunctionTexture(UTexture* Value)
 	{
 		InTexturePath = Value->GetPathName();
 	}
-	switch (MatchFunction)
+	switch (GetMatchFunction())
 	{
 	case ECMTParameterSearcherFunction::Equals:
 		if (InTexturePath.IsEmpty())
 		{
-			bRetMatch = TextureValue.IsEmpty();
+			bRetMatch = GetTextureValue().IsEmpty();
 		}
 		else
 		{
-			bRetMatch = (InTexturePath.Find(TextureValue) != INDEX_NONE);
+			bRetMatch = (InTexturePath.Find(GetTextureValue()) != INDEX_NONE);
 		}
 		break;
 	case ECMTParameterSearcherFunction::NotEquals:
 		if (InTexturePath.IsEmpty())
 		{
-			bRetMatch = !TextureValue.IsEmpty();
+			bRetMatch = !GetTextureValue().IsEmpty();
 		}
 		else
 		{
-			bRetMatch = (InTexturePath.Find(TextureValue) == INDEX_NONE);
+			bRetMatch = (InTexturePath.Find(GetTextureValue()) == INDEX_NONE);
 		}
 		break;
 	case ECMTParameterSearcherFunction::GreaterThan:

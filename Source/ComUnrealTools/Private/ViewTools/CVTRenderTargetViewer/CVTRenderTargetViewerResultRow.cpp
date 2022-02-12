@@ -160,7 +160,7 @@ FSlateImageBrush* SCVTRenderTargetViewerResultRow::CreateSlateImageBrush()
 		}
 		Resource = OpaqueImage;
 	}
-	return new FSlateImageBrush(Resource, SCVTRenderTargetViewer::GetPreviewSize());
+	return new FSlateImageBrush(Resource, SCVTRenderTargetViewer::GetPreviewSizeV2());
 }
 
 

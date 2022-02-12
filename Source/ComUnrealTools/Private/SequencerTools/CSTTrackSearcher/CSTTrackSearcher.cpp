@@ -26,9 +26,6 @@
 ////////////////////////////////////
 // SCSTTrackSearcher
 const FString SCSTTrackSearcher::DirectorySeparateString = FString(" / ");
-FString SCSTTrackSearcher::SearchPath = FString("/Game/");
-FString SCSTTrackSearcher::SearchValue = FString("");
-ECheckBoxState SCSTTrackSearcher::CheckBoxUsePropertySearch = ECheckBoxState::Checked;
 
 
 SCSTTrackSearcher::~SCSTTrackSearcher()
@@ -64,7 +61,7 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("FindPath", "Enter level sequence path to find references..."))
-				.InitialText(FText::FromString(SearchPath))
+				.InitialText(FText::FromString(GetSearchPath()))
 				.OnTextCommitted(this, &SCSTTrackSearcher::OnSearchPathCommitted)
 			]
 		]
@@ -87,7 +84,7 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 			[
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("Find", "Enter track name, texture name to find references..."))
-				.InitialText(FText::FromString(SearchValue))
+				.InitialText(FText::FromString(GetSearchValue()))
 				.OnTextCommitted(this, &SCSTTrackSearcher::OnSearchTextCommitted)
 			]
 		]
@@ -104,7 +101,7 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 			.AutoWidth()
 			[
 				SNew(SCheckBox)
-				.IsChecked(CheckBoxUsePropertySearch)
+				.IsChecked(GetCheckBoxUsePropertySearch())
 				.OnCheckStateChanged(this, &SCSTTrackSearcher::OnCheckBoxUsePropertySearchChanged)
 			]
 			// override only
@@ -204,8 +201,8 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 	
 	
 	
-	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
-	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
+	OnSearchPathCommitted(FText::FromString(GetSearchPath()), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(GetSearchValue()), ETextCommit::OnEnter);
 }
 
 FReply SCSTTrackSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) 
@@ -219,25 +216,25 @@ FReply SCSTTrackSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent
 /** text change event */
 void SCSTTrackSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchPath = Text.ToString();
+	SetSearchPath(Text.ToString());
 	bDirtySearchPath = true;
 	
-	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
+	SearchStartButton->SetEnabled((!GetSearchPath().IsEmpty() && !GetSearchValue().IsEmpty()));
 }
 
 /** text change event */
 void SCSTTrackSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	SearchValue = Text.ToString();
+	SetSearchValue(Text.ToString());
 	bDirtySearchText = true;
 	
-	SearchStartButton->SetEnabled((!SearchPath.IsEmpty() && !SearchValue.IsEmpty()));
+	SearchStartButton->SetEnabled((!GetSearchPath().IsEmpty() && !GetSearchValue().IsEmpty()));
 }
 // Search  --- End
 
 void SCSTTrackSearcher::OnCheckBoxUsePropertySearchChanged(ECheckBoxState InValue)
 {
-	CheckBoxUsePropertySearch = InValue;
+	SetCheckBoxUsePropertySearch(InValue);
 }
 
 /** Search */
@@ -250,19 +247,19 @@ void SCSTTrackSearcher::SearchStart()
 	}
 	ItemsFound.Empty();		
 
-	HighlightText = FText::FromString(SearchValue);
+	HighlightText = FText::FromString(GetSearchValue());
 
 	// search path parse
 	if (bDirtySearchPath)
 	{
-		FCUTUtility::SplitStringTokens(SearchPath, &SearchPathTokens);
+		FCUTUtility::SplitStringTokens(GetSearchPath(), &SearchPathTokens);
 		bDirtySearchPath = false;
 	}
 	
 	// search text parse
 	if (bDirtySearchText)
 	{
-		FCUTUtility::SplitStringTokens(SearchValue, &SearchTokens);
+		FCUTUtility::SplitStringTokens(GetSearchValue(), &SearchTokens);
 		bDirtySearchText = false;
 	}
 	
@@ -450,7 +447,7 @@ void SCSTTrackSearcher::SearchMovieSceneBinding(UMovieScene* InMovieScene, const
 		ObjectNames.Add(InBinding->GetName());
 
 		// BPのプロパティ
-		if ((CheckBoxUsePropertySearch == ECheckBoxState::Checked) && Spawnable->GetObjectTemplate())
+		if ((GetCheckBoxUsePropertySearch() == ECheckBoxState::Checked) && Spawnable->GetObjectTemplate())
 		{
 			UObject* SpwanableObject = Spawnable->GetObjectTemplate();
 			for (TFieldIterator<FProperty> PropertyIterator(SpwanableObject->GetClass()); PropertyIterator; ++PropertyIterator)
@@ -627,8 +624,8 @@ FReply SCSTTrackSearcher::ButtonExportCsvClicked()
 FString SCSTTrackSearcher::GetClipboardText()
 {
 	FString RetString;
-	RetString = FString::Printf(TEXT("Search Path: %s\n"), *SearchPath);
-	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *SearchValue);
+	RetString = FString::Printf(TEXT("Search Path: %s\n"), *GetSearchPath());
+	RetString += FString::Printf(TEXT("Search Name: %s\n\n"), *GetSearchValue());
 	
 	
 	for (auto It = ItemsFound.CreateConstIterator() ; It ; ++It)

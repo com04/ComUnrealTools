@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "SlateFwd.h"
 #include "Styling/SlateTypes.h"
@@ -65,7 +66,7 @@ protected:
 	// Check box --- Begin
 	
 	/** "check material instance" checkbox changed callback */
-	void OnDispOverrideOnlyStateChanged(ECheckBoxState InValue) { DispOverrideOnlyState = InValue; }
+	void OnDispOverrideOnlyStateChanged(ECheckBoxState InValue) { SetDispOverrideOnlyState(InValue); }
 	
 	// Check box --- End
 	
@@ -123,6 +124,8 @@ private:
 	/** チェックした時点のマテリアル名 */
 	FString CheckMaterialName;
 	
+	
+	/* DeveloperSettings管理 */
 	/** "disp override only" result */
-	static ECheckBoxState DispOverrideOnlyState;
+	CUT_DEVSETTINGS_CHECKBOX(DispOverrideOnlyState, CMTParameterDumpDispOverrideOnly);
 };

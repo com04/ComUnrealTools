@@ -40,6 +40,11 @@ void FComUnrealToolsModule::StartupModule()
 		DeveloperSettings->LoadConfig(nullptr, *ConfigFilePath);
 		// savedのユーザーが追加した設定
 		DeveloperSettings->LoadConfig();
+		if (!DeveloperSettings->UseSavedCache)
+		{
+			DeveloperSettings->InitialzieCachedParameter();
+			DeveloperSettings->LoadConfig(nullptr, *ConfigFilePath);
+		}
 	}
 
 	// Add "Menubar - [Window] -> [Developer Tools]"

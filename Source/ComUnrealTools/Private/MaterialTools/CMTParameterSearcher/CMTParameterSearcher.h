@@ -11,6 +11,7 @@
 
 #include "CMTParameterSearcherResult.h"
 #include "MaterialTools/Utility/CMTMaterialSearcher.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 
 typedef TSharedPtr<class FCMTParameterSearcherResult> FCMTParameterSearcherResultShare;
@@ -243,29 +244,28 @@ private:
 	TArray<FCMTParameterSearcherResultShare> ItemsFound;
 	
 	
-	
 	/** search path text */
-	static FString SearchPath;
+	CUT_DEVSETTINGS_STRING(SearchPath, CMTParameterSearcherSearchPath);
 	
 	/** search text */
-	static FString SearchValue;
+	CUT_DEVSETTINGS_STRING(SearchValue, CMTParameterSearcherSearchName);
 	
 	/** パラメーター数値 */
-	static float ScalarValue;
-	static FLinearColor VectorValue;
-	static FString TextureValue;
+	CUT_DEVSETTINGS_FLOAT(ScalarValue, CMTParameterSearcherScalarValue);
+	CUT_DEVSETTINGS_COLOR(VectorValue, CMTParameterSearcherVectorValue);
+	CUT_DEVSETTINGS_STRING(TextureValue, CMTParameterSearcherTextureValue);
 	
 	/** Vectorの検索関数 */
-	static ECMTParameterSearcherVectorFunction VectorFunction;
+	CUT_DEVSETTINGS_ENUM(VectorFunction, CMTParameterSearcherVectorFunction, ECMTParameterSearcherVectorFunction);
 	/** 比較関数 */
-	static ECMTParameterSearcherFunction MatchFunction;
+	CUT_DEVSETTINGS_ENUM(MatchFunction, CMTParameterSearcherFunction, ECMTParameterSearcherFunction);
 	
 	/** 検索型種類 */
-	static ESelectType SelectType;
-	static ECheckBoxState CheckBoxStateVectorR;
-	static ECheckBoxState CheckBoxStateVectorG;
-	static ECheckBoxState CheckBoxStateVectorB;
-	static ECheckBoxState CheckBoxStateVectorA;
-	static ECheckBoxState CheckBoxStateStaticSwitchValue;
-	static ECheckBoxState CheckBoxStateOverrideOnly;
+	CUT_DEVSETTINGS_ENUM(SelectType, CMTParameterSearcherSelectType, ESelectType);
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxStateVectorR, CMTParameterSearcherSelectUseVectorR);
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxStateVectorG, CMTParameterSearcherSelectUseVectorG);
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxStateVectorB, CMTParameterSearcherSelectUseVectorB);
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxStateVectorA, CMTParameterSearcherSelectUseVectorA);
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxStateStaticSwitchValue, CMTParameterSearcherSelectStaticSwitch);
+	CUT_DEVSETTINGS_CHECKBOX(CheckBoxStateOverrideOnly, CMTParameterSearcherOverrideOnly);
 };
