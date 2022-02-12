@@ -26,7 +26,7 @@
 ////////////////////////////////////
 // SCSTTrackSearcher
 const FString SCSTTrackSearcher::DirectorySeparateString = FString(" / ");
-FString SCSTTrackSearcher::SearchPath = FString("/Game/SandBox/SearchLS");
+FString SCSTTrackSearcher::SearchPath = FString("/Game/");
 FString SCSTTrackSearcher::SearchValue = FString("");
 ECheckBoxState SCSTTrackSearcher::CheckBoxUsePropertySearch = ECheckBoxState::Checked;
 
@@ -57,7 +57,7 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 			.Padding(0.f, 4.f, 12.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("SearchPath", "Path"))
+				.Text(LOCTEXT("SearchPath", "Search Path"))
 			]
 			+SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -65,7 +65,7 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("FindPath", "Enter level sequence path to find references..."))
 				.InitialText(FText::FromString(SearchPath))
-				.OnTextChanged(this, &SCSTTrackSearcher::OnSearchPathChanged)
+				.OnTextCommitted(this, &SCSTTrackSearcher::OnSearchPathCommitted)
 			]
 		]
 		
@@ -80,7 +80,7 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 			.Padding(0.f, 4.f, 12.f, 0.f)
 			[
 				SNew(STextBlock)
-				.Text(LOCTEXT("SearchName", "Name"))
+				.Text(LOCTEXT("SearchName", "Search Name"))
 			]
 			+SHorizontalBox::Slot()
 			.FillWidth(1.0f)
@@ -88,21 +88,20 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 				SNew(SSearchBox)
 				.HintText(LOCTEXT("Find", "Enter track name, texture name to find references..."))
 				.InitialText(FText::FromString(SearchValue))
-				.OnTextChanged(this, &SCSTTrackSearcher::OnSearchTextChanged)
+				.OnTextCommitted(this, &SCSTTrackSearcher::OnSearchTextCommitted)
 			]
 		]
 		
 		// Option
 		+SVerticalBox::Slot()
 		.AutoHeight()
-		.Padding(0.0f, 4.0f, 0.0f, 0.0f)
+		.Padding(10.0f, 4.0f, 0.0f, 0.0f)
 		[
 			SNew(SHorizontalBox)
 
 			// プロパティ検索
 			+SHorizontalBox::Slot()
 			.AutoWidth()
-			.Padding(30.0f, 0.0f, 0.0f, 0.0f)
 			[
 				SNew(SCheckBox)
 				.IsChecked(CheckBoxUsePropertySearch)
@@ -205,8 +204,8 @@ void SCSTTrackSearcher::Construct(const FArguments& InArgs)
 	
 	
 	
-	OnSearchPathChanged(FText::FromString(SearchPath));
-	OnSearchTextChanged(FText::FromString(SearchValue));
+	OnSearchPathCommitted(FText::FromString(SearchPath), ETextCommit::OnEnter);
+	OnSearchTextCommitted(FText::FromString(SearchValue), ETextCommit::OnEnter);
 }
 
 FReply SCSTTrackSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent& InKeyEvent) 
@@ -218,7 +217,7 @@ FReply SCSTTrackSearcher::OnKeyDown(const FGeometry& MyGeometry, const FKeyEvent
 // Search path --- Begin
 
 /** text change event */
-void SCSTTrackSearcher::OnSearchPathChanged(const FText& Text)
+void SCSTTrackSearcher::OnSearchPathCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	SearchPath = Text.ToString();
 	bDirtySearchPath = true;
@@ -227,7 +226,7 @@ void SCSTTrackSearcher::OnSearchPathChanged(const FText& Text)
 }
 
 /** text change event */
-void SCSTTrackSearcher::OnSearchTextChanged(const FText& Text)
+void SCSTTrackSearcher::OnSearchTextCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
 	SearchValue = Text.ToString();
 	bDirtySearchText = true;

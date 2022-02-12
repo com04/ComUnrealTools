@@ -431,7 +431,6 @@ void SCMTParameterSearcher::Construct(const FArguments& InArgs)
 					SNew(SSearchBox)
 					.HintText(LOCTEXT("TextureValue", "検索したいテクスチャ名を入れてください（部分一致）"))
 					.InitialText(FText::FromString(TextureValue))
-					.OnTextChanged(this, &SCMTParameterSearcher::OnTextureValueChanged)
 					.OnTextCommitted(this, &SCMTParameterSearcher::OnTextureValueCommitted)
 				]
 			]
@@ -982,13 +981,9 @@ void SCMTParameterSearcher::OnSpinBoxVectorAValueChanged(float InValue)
 // SSpinBox --- End
 
 // TextureValue --- Begin
-void SCMTParameterSearcher::OnTextureValueChanged(const FText& Text)
-{
-	TextureValue = Text.ToString();
-}
 void SCMTParameterSearcher::OnTextureValueCommitted(const FText& Text, ETextCommit::Type CommitType)
 {
-	OnTextureValueChanged(Text);
+	TextureValue = Text.ToString();
 }
 // TextureValue --- End
 
