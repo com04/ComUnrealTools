@@ -12,18 +12,17 @@
 #define CUT_DEVSETTINGS_INTERNAL(Name, ConfigName, Type, RefOutType, SetFunc, GetFunc) \
 	static void Set##Name(Type InValue) \
 	{ \
-		UCUTDeveloperSettings* Settings = GetMutableDefault<UCUTDeveloperSettings>(); \
+		UCUTDeveloperSettings* Settings = UCUTDeveloperSettings::GetWritable(); \
 		Settings->ConfigName = SetFunc; \
 	} \
 	static Type Get##Name()\
 	{ \
-		const UCUTDeveloperSettings* Settings = GetDefault<UCUTDeveloperSettings>(); \
+		const UCUTDeveloperSettings* Settings = UCUTDeveloperSettings::Get(); \
 		return GetFunc; \
 	} \
 	static RefOutType& Get##Name##Ref() \
 	{ \
-		UCUTDeveloperSettings* Settings = GetMutableDefault<UCUTDeveloperSettings>(); \
-		return Settings->ConfigName; \
+		return UCUTDeveloperSettings::GetWritable()->ConfigName; \
 	}
 
 #define CUT_DEVSETTINGS_ATOMIC(Name, ConfigName, Type) CUT_DEVSETTINGS_INTERNAL(Name, ConfigName, Type,        Type, InValue, Settings->ConfigName)
@@ -175,6 +174,9 @@ public:
 	/** VolumeRenderer: リスト保存 */
 	UPROPERTY(config)
 	TArray<FCVTVolumeRendererItemInfo> CVTVolumeRendererItems;
+	/** VolumeRenderer: 面部分のアルファ値 */
+	UPROPERTY(config, EditAnywhere, Category = "ViewTools|VolumeRenderer", meta = (DisplayName = "面部分のアルファ値", ClampMin=0.0f, ClampMax=1.0f))
+	float CVTVolumeRendererSolidAlpha;
 
 
 
@@ -187,6 +189,11 @@ public:
 	
 	/** パラメーターを初期化する */
 	void InitialzieCachedParameter();
+
+public:
+	static const UCUTDeveloperSettings* Get();
+	static UCUTDeveloperSettings* GetWritable();
+	
 
 protected:
 	/** 値変更時のコールバック */

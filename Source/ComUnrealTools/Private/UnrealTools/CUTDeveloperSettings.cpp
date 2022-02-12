@@ -10,7 +10,8 @@
 
 UCUTDeveloperSettings::UCUTDeveloperSettings()
 : Super(),
-  UseSavedCache(true)
+  UseSavedCache(true),
+  CVTVolumeRendererSolidAlpha(0.5f)
 {
 	InitialzieCachedParameter();
 	OnSettingChanged().AddUObject(this, &UCUTDeveloperSettings::OnPropertySettingChanged);
@@ -65,6 +66,14 @@ void UCUTDeveloperSettings::InitialzieCachedParameter()
 	CVTVolumeRendererOneShotDuration = 5.0f;
 	CVTVolumeRendererRenderDistance = 0.0f;
 	CVTVolumeRendererItems.Empty();
+}
+const UCUTDeveloperSettings* UCUTDeveloperSettings::Get()
+{
+	return GetDefault<UCUTDeveloperSettings>();
+}
+UCUTDeveloperSettings* UCUTDeveloperSettings::GetWritable()
+{
+	return GetMutableDefault<UCUTDeveloperSettings>();
 }
 
 /** 値変更時のコールバック */

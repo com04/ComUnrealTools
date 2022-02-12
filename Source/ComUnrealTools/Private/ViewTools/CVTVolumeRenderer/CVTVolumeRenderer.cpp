@@ -387,7 +387,7 @@ void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRender
 	}
 	
 	const FColor LineColor = Info.DisplayColor.ToFColor(true);
-	const FColor SolidColor = FColor(LineColor.R, LineColor.G, LineColor.B, LineColor.A * 0.5f);
+	const FColor SolidColor = FColor(LineColor.R, LineColor.G, LineColor.B, 255 * UCUTDeveloperSettings::Get()->CVTVolumeRendererSolidAlpha);
 	for(TActorIterator<AActor> ActorIt(InWorld, Info.Class) ; ActorIt ; ++ActorIt)
 	{
 		AActor* TargetActor = *ActorIt;
