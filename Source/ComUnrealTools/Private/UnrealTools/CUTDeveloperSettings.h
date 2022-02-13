@@ -55,13 +55,17 @@ public:
 	 * EditorSettingsにも必要→(config, EditAnywhere, Category = "", meta = (DisplayName = ""))
 	 */
 	
-	/** 使用中のパラメーターをSavedに保存して、次回起動時に復元するか */
-	UPROPERTY(config, EditAnywhere, Category = "Option", meta = (DisplayName = "設定をキャッシュに保存するか"))
-	bool UseSavedCache;
+	/** ONでエディターを再起動しても設定パラメーターが残ります。OFFで再起動すると初期化されます。 */
+	UPROPERTY(config, EditAnywhere, Category = "Option", meta = (DisplayName = "設定をキャッシュに保存する"))
+	bool bUseSavedCache;
 
 	/** TrackSearch, PropertySearchで使用。ONだと検索数が増えて重くなります */
-	UPROPERTY(config, EditAnywhere, Category = "Option", meta = (DisplayName = "BPのプロパティ検索でDisplayNameも検索するか"))
+	UPROPERTY(config, EditAnywhere, Category = "Option", meta = (DisplayName = "BPのプロパティ検索でDisplayNameも検索する"))
 	bool bUseDisplayNameInPropertySearch;
+
+	/** TrackSearch, PropertySearchで使用。検索したい変数の名称が分からない場合に */
+	UPROPERTY(config, EditAnywhere, Category = "Option|Debug", meta = (DisplayName = "BPのプロパティ検索で検索プロパティ名をログに出力"))
+	bool bUseDebugOutputNameInPropertySearch;
 
 	
 	 

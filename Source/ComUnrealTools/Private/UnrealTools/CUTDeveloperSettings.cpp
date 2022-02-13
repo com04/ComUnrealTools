@@ -10,8 +10,9 @@
 
 UCUTDeveloperSettings::UCUTDeveloperSettings()
 : Super(),
-  UseSavedCache(true),
+  bUseSavedCache(true),
   bUseDisplayNameInPropertySearch(true),
+  bUseDebugOutputNameInPropertySearch(false),
   CVTVolumeRendererSolidAlpha(0.5f)
 {
 	InitialzieCachedParameter();

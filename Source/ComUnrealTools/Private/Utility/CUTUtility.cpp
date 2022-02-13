@@ -3,6 +3,7 @@
 
 #include "CUTUtility.h"
 #include "ComUnrealTools.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "DesktopPlatformModule.h"
 #include "DrawDebugHelpers.h"
@@ -145,7 +146,10 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 	FName ID = InProperty->GetID();
 	FString NamePrivate = InProperty->NamePrivate.ToString();
 	FString DisplayNameText = InProperty->GetDisplayNameText().ToString();
-	// UE_LOG(LogTemp, Log, TEXT("  Prop %d : %s - %s / %s"), InProperty->ArrayDim, *ID.ToString(), *NamePrivate, *DisplayNameText);
+	if (UCUTDeveloperSettings::Get()->bUseDebugOutputNameInPropertySearch)
+	{
+		UE_LOG(LogTemp, Log, TEXT("SearchProperty ID=%s Name=%s DisplayName=%s"), *ID.ToString(), *NamePrivate, *DisplayNameText);
+	}
 	
 	// パラメーター文字列が名前とマッチングするか
 	const TArray<FString>& LocalSearchStrings = InSearchStrings;
@@ -353,7 +357,6 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 					}
 					if (ObjectPtr)
 					{
-						// UE_LOG(LogTemp, Log, TEXT("obj2 %s"), *ObjectPtr->GetName());
 						for (TFieldIterator<FProperty> PropertyIterator(ObjProp->PropertyClass); PropertyIterator; ++PropertyIterator)
 						{
 							SearchPropertyInternal(ObjectPtr, *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false);

@@ -42,7 +42,7 @@ void FComUnrealToolsModule::StartupModule()
 		DeveloperSettings->LoadConfig(nullptr, *ConfigFilePath);
 		// savedのユーザーが追加した設定
 		DeveloperSettings->LoadConfig();
-		if (!DeveloperSettings->UseSavedCache)
+		if (!DeveloperSettings->bUseSavedCache)
 		{
 			DeveloperSettings->InitialzieCachedParameter();
 			DeveloperSettings->LoadConfig(nullptr, *ConfigFilePath);
