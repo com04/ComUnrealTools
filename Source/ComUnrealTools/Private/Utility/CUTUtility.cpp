@@ -7,6 +7,7 @@
 #include "DesktopPlatformModule.h"
 #include "DrawDebugHelpers.h"
 #include "Editor/EditorEngine.h"
+#include "Engine/SCS_Node.h"
 #include "HAL/FileManagerGeneric.h"
 #include "HAL/PlatformApplicationMisc.h"
 #include "IDesktopPlatform.h"
@@ -135,29 +136,29 @@ FName FCUTUtility::GetIconBrushName(UMaterial* Material, UMaterialInstance* Mate
  * @param InFunction マッチングした際に呼び出される関数
  * @retval 見つかった個数
  */
-void FCUTUtility::SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction)
+void FCUTUtility::SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction)
 {
-	SearchPropertyInternal(InObject, InProperty, InSearchStrings, InSearchObjectProperty, InFunction, TArray<FString>{FString(TEXT(""))}, false);
+	SearchPropertyInternal(InObject, InProperty, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, TArray<FString>{FString(TEXT(""))}, false);
 }
-void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly)
+void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly)
 {
 	FName ID = InProperty->GetID();
-	FName NamePrivate = InProperty->NamePrivate;
-	FText DisplayNameText = InProperty->GetDisplayNameText();
-	// UE_LOG(LogTemp, Log, TEXT("  Prop %d : %s - %s / %s"), InProperty->ArrayDim, *ID.ToString(), *NamePrivate.ToString(), *DisplayNameText.ToString());
+	FString NamePrivate = InProperty->NamePrivate.ToString();
+	FString DisplayNameText = InProperty->GetDisplayNameText().ToString();
+	// UE_LOG(LogTemp, Log, TEXT("  Prop %d : %s - %s / %s"), InProperty->ArrayDim, *ID.ToString(), *NamePrivate, *DisplayNameText);
 	
 	// パラメーター文字列が名前とマッチングするか
 	const TArray<FString>& LocalSearchStrings = InSearchStrings;
-	auto NameCheckFunc = [InProperty, LocalSearchStrings, InFunction, InParentString, bInStringParentOnly, NamePrivate, DisplayNameText](const FString& ValueString, const FString& DebugName) -> bool
+	auto NameCheckFunc = [InProperty, LocalSearchStrings, InSearchDisplayName, InFunction, InParentString, bInStringParentOnly, NamePrivate, DisplayNameText](const FString& ValueString, const FString& DebugName) -> bool
 	{
-		FString DisplayNameBase = FString::Printf(TEXT("%s=%s"), (bInStringParentOnly ? TEXT("") : *DisplayNameText.ToString()), *ValueString);
-		FString PrivateNameBase = FString::Printf(TEXT("%s=%s"), (bInStringParentOnly ? TEXT("") : *NamePrivate.ToString()), *ValueString);
+		FString DisplayNameBase = FString::Printf(TEXT("%s=%s"), (bInStringParentOnly ? TEXT("") : *DisplayNameText), *ValueString);
+		FString PrivateNameBase = FString::Printf(TEXT("%s=%s"), (bInStringParentOnly ? TEXT("") : *NamePrivate), *ValueString);
 		for (const FString& ParentString : InParentString)
 		{
 			FString DisplayNameString = FString::Printf(TEXT("%s%s"), *ParentString, *DisplayNameBase);
 			FString PrivateNameString = FString::Printf(TEXT("%s%s"), *ParentString, *PrivateNameBase);
 			// UE_LOG(LogTemp, Log, TEXT("    Check %s : %s / %s"), *DebugName, *DisplayNameString, *PrivateNameString);
-			if (FCUTUtility::StringMatchesSearchTokens(LocalSearchStrings, DisplayNameString))
+			if (InSearchDisplayName && FCUTUtility::StringMatchesSearchTokens(LocalSearchStrings, DisplayNameString))
 			{
 				InFunction(*InProperty, DisplayNameString);
 				return true;
@@ -172,23 +173,38 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 	};
 
 	// Childへ引き継ぐ文字列。変数名とDisplayNameとで２つ用意する
-	auto CreateParentStrings = [InParentString, NamePrivate, DisplayNameText](int32 InArrayIndex=-1, const FString& InAppendString=FString()) -> TArray<FString>
+	auto CreateParentStrings = [InSearchDisplayName, InParentString, NamePrivate, DisplayNameText](int32 InArrayIndex=-1, const FString& InAppendString=FString()) -> TArray<FString>
 	{
-		// 親から引き継ぐのはDisplayName側のみ
-		FString ParentString;
-		if (InParentString.Num() > 0)
-		{
-			ParentString = InParentString[0];
-		}
+		TArray<FString> RetStrings;
+		
 		FString ArrayString;
 		if (InArrayIndex >= 0)
 		{
 			ArrayString = FString::Printf(TEXT("[%d]"), InArrayIndex);
 		}
-		return TArray<FString> {
-			FString::Printf(TEXT("%s%s%s%s"), *ParentString, *DisplayNameText.ToString(), *ArrayString, *InAppendString),
-			FString::Printf(TEXT("%s%s%s%s"), *ParentString, *NamePrivate.ToString(), *ArrayString, *InAppendString)
-		};
+		RetStrings.Reserve(InParentString.Num() * 2);
+		for (const FString& ParentString : InParentString)
+		{
+			if (InSearchDisplayName)
+			{
+				RetStrings.Add(FString::Printf(TEXT("%s%s%s%s"), *ParentString, *DisplayNameText, *ArrayString, *InAppendString));
+			}
+			RetStrings.Add(FString::Printf(TEXT("%s%s%s%s"), *ParentString, *NamePrivate, *ArrayString, *InAppendString));
+		}
+		return RetStrings;
+	};
+	
+	// propertyが配列型か
+	auto UseStoreType = [](const FProperty* InProperty) -> bool
+	{
+		if (InProperty->IsA(FStructProperty::StaticClass()) ||
+				InProperty->IsA(FArrayProperty::StaticClass()) ||
+				InProperty->IsA(FSetProperty::StaticClass()) ||
+				InProperty->IsA(FMapProperty::StaticClass()))
+		{
+			return true;
+		}
+		return false;
 	};
 	
 	// プロパティから値を引っ張る
@@ -226,18 +242,20 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 				FString EnumValDisplayStr = EnumType->GetDisplayNameTextByIndex(*Value).ToString() + EnumIndexString;
 				FString EnumValStr = EnumType->GetNameStringByIndex(*Value) + EnumIndexString;
 				
-				if (!NameCheckFunc(EnumValDisplayStr, TEXT("Enum")))
+				if (!InSearchDisplayName || !NameCheckFunc(EnumValDisplayStr, TEXT("Enum(DisplayName)")))
 				{
-					NameCheckFunc(EnumValStr, TEXT("Enum2"));
+					NameCheckFunc(EnumValStr, TEXT("Enum"));
 				}
 			}
 		}
 		else if (const FBoolProperty* BoolProp = CastField<const FBoolProperty>(InProperty))
 		{
-			const bool* Value = InProperty->ContainerPtrToValuePtr<bool>(InObject);
-			if (Value)
+			const void* ValueAddress = InProperty->ContainerPtrToValuePtr<void>(InObject);
+			if (ValueAddress)
 			{
-				NameCheckFunc((*Value ? TEXT("true") : TEXT("false")), TEXT("Bool"));
+				// bit fieldが有るのでこの関数でbit maskして取得する
+				bool Value = BoolProp->GetPropertyValue(ValueAddress);
+				NameCheckFunc((Value ? TEXT("True") : TEXT("False")), TEXT("Bool"));
 			}
 		}
 		else if (const FIntProperty* IntProp = CastField<const FIntProperty>(InProperty))
@@ -290,30 +308,58 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FObjectPropertyBase* ObjProp = CastField<const FObjectPropertyBase>(InProperty))
 		{
-			// todo: 要チェック
-			// const void* Value1 = InProperty->ContainerPtrToValuePtr<const void>((UObject*)InObject);
-			// const UObject* Value2 = InProperty->ContainerPtrToValuePtr<const UObject>((UObject*)InObject);
-			// const UObject* Value = ObjProp->LoadObjectPropertyValue(InObject);
-			const UObject* Value3 = ObjProp->GetObjectPropertyValue(ObjProp->ContainerPtrToValuePtr<UObject>(InObject));
-			// UE_LOG(LogTemp, Log, TEXT("obj %p %p %p %p"), Value1, Value2, Value3, Value);
-			// UE_LOG(LogTemp, Log, TEXT("obj %p"), Value3);
+			NameCheckFunc(TEXT(""), TEXT("Object"));
+			
 			if (InSearchObjectProperty)
 			{
-				if (Value3 && ObjProp->PropertyClass)
+				if (ObjProp->PropertyClass)
 				{
-					/*
-						NameCheckFunc(*Value->GetName(), TEXT("Object"));
-						FString ParentString = FString::Printf(TEXT("%s%s."), *InParentString, *NamePrivate.ToString());
+					const UObject* ObjectPtr = nullptr;
+					// 保持しているコンポーネント
+					if (const void* ValuePtr = ObjProp->ContainerPtrToValuePtr<const void>(InObject))
+					{
+						ObjectPtr = ObjProp->GetObjectPropertyValue(ValuePtr);
+					}
+					// BPアセットの場合はコンポーネントをそのまま持っていないので、Classの中から引っ張る
+					if (!ObjectPtr)
+					{
+						// UObjectじゃない可能性は？
+						UObject* InUObject = (UObject*)(InObject);
+						if (InUObject)
+						{
+							UBlueprintGeneratedClass* BPGC = Cast<UBlueprintGeneratedClass>(InUObject->GetClass());
+							if (BPGC)
+							{
+								const TArray<USCS_Node*>& ActorBlueprintNodes = BPGC->SimpleConstructionScript->GetAllNodes();
+								for (USCS_Node* Node : ActorBlueprintNodes)
+								{
+									if (Node->ComponentClass == ObjProp->PropertyClass)
+									{
+										UObject* CompTemplate = Node->GetActualComponentTemplate(BPGC);
+										if (CompTemplate)
+										{
+											// ここで生成されたComponent名には_GEN_VARIABLEがsuffixに付く
+											FString TemplateName = CompTemplate->GetName().Replace(TEXT("_GEN_VARIABLE"), TEXT(""));
+											if (NamePrivate.Compare(TemplateName) == 0)
+											{
+												ObjectPtr = CompTemplate;
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+					if (ObjectPtr)
+					{
+						// UE_LOG(LogTemp, Log, TEXT("obj2 %s"), *ObjectPtr->GetName());
 						for (TFieldIterator<FProperty> PropertyIterator(ObjProp->PropertyClass); PropertyIterator; ++PropertyIterator)
 						{
-							SearchPropertyInternal(Value, *PropertyIterator, InSearchStrings, InFunction, ParentString, false);
+							SearchPropertyInternal(ObjectPtr, *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false);
 						}
-					*/
+					}
 				}
-			}
-			else
-			{
-				NameCheckFunc(TEXT(""), TEXT("Object"));
 			}
 		}
 		else if (const FStructProperty* StructProp = CastField<const FStructProperty>(InProperty))
@@ -323,27 +369,31 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 			{
 				for (TFieldIterator<FProperty> PropertyIterator(StructProp->Struct); PropertyIterator; ++PropertyIterator)
 				{
-					SearchPropertyInternal(Value, *PropertyIterator, InSearchStrings, InSearchObjectProperty, InFunction, CreateParentStrings(-1, TEXT(".")), false);
+					SearchPropertyInternal(Value, *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false);
 				}
 			}
 		}
 		else if (const FArrayProperty* ArrayProperty = CastField<const FArrayProperty>(InProperty))
 		{
+			const FString Separator(UseStoreType(ArrayProperty->Inner) ? TEXT(".") : TEXT(""));
+			
 			FScriptArrayHelper ScriptHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(InObject));
 			for (int32 Index = 0 ; Index < ScriptHelper.Num() ; ++Index)
 			{
 				const void* Value = ScriptHelper.GetRawPtr(Index);
-				SearchPropertyInternal(Value, ArrayProperty->Inner, InSearchStrings, InSearchObjectProperty, InFunction, CreateParentStrings(Index), true);
+				SearchPropertyInternal(Value, ArrayProperty->Inner, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, *Separator), true);
 				
 			}
 		}
 		else if (const FSetProperty* SetProperty = CastField<const FSetProperty>(InProperty))
 		{
+			const FString Separator(UseStoreType(SetProperty->ElementProp) ? TEXT(".") : TEXT(""));
+			
 			FScriptSetHelper ScriptHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(InObject));
 			for (int32 Index = 0 ; Index < ScriptHelper.Num() ; ++Index)
 			{
 				const void* IndexValuePtr = ScriptHelper.GetElementPtr(Index);
-				SearchPropertyInternal(IndexValuePtr, SetProperty->ElementProp, InSearchStrings, InSearchObjectProperty, InFunction, CreateParentStrings(Index), true);
+				SearchPropertyInternal(IndexValuePtr, SetProperty->ElementProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, *Separator), true);
 			}
 		}
 		else if (const FMapProperty* MapProperty = CastField<const FMapProperty>(InProperty))
@@ -354,8 +404,8 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 				if (ScriptHelper.IsValidIndex(Index))
 				{
 					const uint8* PairPtr = ScriptHelper.GetPairPtr(Index);
-					SearchPropertyInternal(PairPtr, MapProperty->KeyProp, InSearchStrings, InSearchObjectProperty, InFunction, CreateParentStrings(Index, TEXT(".Key")), true);
-					SearchPropertyInternal(PairPtr, MapProperty->ValueProp, InSearchStrings, InSearchObjectProperty, InFunction, CreateParentStrings(Index, TEXT(".Value")), true);
+					SearchPropertyInternal(PairPtr, MapProperty->KeyProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, TEXT(".Key")), true);
+					SearchPropertyInternal(PairPtr, MapProperty->ValueProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, TEXT(".Value")), true);
 				}
 			}
 		}

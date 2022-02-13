@@ -21,6 +21,7 @@ private:
 	static const FName MaterialToolsTabName;
 	static const FName ViewToolsTabName;
 	static const FName SequencerToolsTabName;
+	static const FName ObjectToolsTabName;
 
 	/** spawn tab event */
 	TSharedRef<class SDockTab> OnSpawnPluginTab(const class FSpawnTabArgs& SpawnTabArgs);

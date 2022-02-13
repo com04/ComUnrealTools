@@ -1,11 +1,12 @@
 ﻿// Copyright com04 All Rights Reserved.
 
 #include "CSTTrackSearcher.h"
-#include "CSTTrackSearcherResult.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
-#include "Utility/CUTUtility.h"
+#include "CSTTrackSearcherResult.h"
+#include "UnrealTools/CUTDeveloperSettings.h"
 #include "Utility/CUTAssetSearcher.h"
+#include "Utility/CUTUtility.h"
 
 #include "AssetData.h"
 #include "AssetRegistryModule.h"
@@ -450,9 +451,10 @@ void SCSTTrackSearcher::SearchMovieSceneBinding(UMovieScene* InMovieScene, const
 		if ((GetCheckBoxUsePropertySearch() == ECheckBoxState::Checked) && Spawnable->GetObjectTemplate())
 		{
 			UObject* SpwanableObject = Spawnable->GetObjectTemplate();
+			const bool bUseDisplayNameInPropertySearch = UCUTDeveloperSettings::Get()->bUseDisplayNameInPropertySearch;
 			for (TFieldIterator<FProperty> PropertyIterator(SpwanableObject->GetClass()); PropertyIterator; ++PropertyIterator)
 			{
-				FCUTUtility::SearchProperty(SpwanableObject, *PropertyIterator, SearchTokens, false, [&FindProperty](const FProperty& InProperty, const FString& ValueString)
+				FCUTUtility::SearchProperty(SpwanableObject, *PropertyIterator, SearchTokens, false, bUseDisplayNameInPropertySearch, [&FindProperty](const FProperty& InProperty, const FString& ValueString)
 						{
 							FindProperty.Add(ValueString);
 						});

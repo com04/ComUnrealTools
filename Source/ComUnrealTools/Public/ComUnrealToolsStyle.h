@@ -29,6 +29,7 @@ public:
 	static const FName MaterialToolsTabIconBrushName;
 	static const FName ViewToolsTabIconBrushName;
 	static const FName SequencerToolsTabIconBrushName;
+	static const FName ObjectToolsTabIconBrushName;
 
 	static const FName BlueprintIconBrushName;
 	static const FName FolderIconBrushName;

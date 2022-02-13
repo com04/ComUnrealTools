@@ -12,6 +12,13 @@
 	"EngineVersion": "4.27.0",
 	"CanContainContent": true,
 	"Installed": false,
+	"Plugins":
+	[
+		{
+			"Name": "LevelSequenceEditor",
+			"Enabled": true
+		}
+	],
 	"Modules": [
 		{
 			"Name": "ComUnrealTools",

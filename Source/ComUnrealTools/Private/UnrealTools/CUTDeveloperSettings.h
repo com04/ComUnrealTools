@@ -59,6 +59,10 @@ public:
 	UPROPERTY(config, EditAnywhere, Category = "Option", meta = (DisplayName = "設定をキャッシュに保存するか"))
 	bool UseSavedCache;
 
+	/** TrackSearch, PropertySearchで使用。ONだと検索数が増えて重くなります */
+	UPROPERTY(config, EditAnywhere, Category = "Option", meta = (DisplayName = "BPのプロパティ検索でDisplayNameも検索するか"))
+	bool bUseDisplayNameInPropertySearch;
+
 	
 	 
 	/** NodeSearcher: 検索パス */
@@ -178,6 +182,12 @@ public:
 	UPROPERTY(config, EditAnywhere, Category = "ViewTools|VolumeRenderer", meta = (DisplayName = "面部分のアルファ値", ClampMin=0.0f, ClampMax=1.0f))
 	float CVTVolumeRendererSolidAlpha;
 
+	/** PropertySearcher: 検索パス */
+	UPROPERTY(config)
+	FString COTPropertySearcherSearchPath;
+	/** PropertySearcher: 検索名 */
+	UPROPERTY(config)
+	FString COTPropertySearcherSearchName;
 
 
 

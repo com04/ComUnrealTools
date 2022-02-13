@@ -50,9 +50,9 @@ public:
 	 * @param InFunction マッチングした際に呼び出される関数
 	 * @retval 見つかった個数
 	 */
-	static void SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction);
+	static void SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction);
 protected:
-	static void SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly);
+	static void SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly);
 
 
 

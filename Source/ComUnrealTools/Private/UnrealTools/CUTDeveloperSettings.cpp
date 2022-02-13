@@ -11,6 +11,7 @@
 UCUTDeveloperSettings::UCUTDeveloperSettings()
 : Super(),
   UseSavedCache(true),
+  bUseDisplayNameInPropertySearch(true),
   CVTVolumeRendererSolidAlpha(0.5f)
 {
 	InitialzieCachedParameter();
@@ -66,6 +67,8 @@ void UCUTDeveloperSettings::InitialzieCachedParameter()
 	CVTVolumeRendererOneShotDuration = 5.0f;
 	CVTVolumeRendererRenderDistance = 0.0f;
 	CVTVolumeRendererItems.Empty();
+	COTPropertySearcherSearchPath = FString(TEXT("/Game/"));
+	COTPropertySearcherSearchName = FString();
 }
 const UCUTDeveloperSettings* UCUTDeveloperSettings::Get()
 {

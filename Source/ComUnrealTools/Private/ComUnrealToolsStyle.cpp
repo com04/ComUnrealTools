@@ -14,6 +14,7 @@ const FName FComUnrealToolsStyle::UnrealToolsTabIconBrushName = FName(TEXT("ComU
 const FName FComUnrealToolsStyle::MaterialToolsTabIconBrushName = FName(TEXT("ComUnrealTools.MaterialToolsTabIcon"));
 const FName FComUnrealToolsStyle::ViewToolsTabIconBrushName = FName(TEXT("ComUnrealTools.ViewToolsTabIcon"));
 const FName FComUnrealToolsStyle::SequencerToolsTabIconBrushName = FName(TEXT("ComUnrealTools.SequencerToolsTabIcon"));
+const FName FComUnrealToolsStyle::ObjectToolsTabIconBrushName = FName(TEXT("ComUnrealTools.ObjectToolsTabIcon"));
 const FName FComUnrealToolsStyle::BlueprintIconBrushName = FName(TEXT("ComUnrealTools.BlueprintIcon"));
 const FName FComUnrealToolsStyle::FolderIconBrushName = FName(TEXT("ComUnrealTools.FolderIcon"));
 const FName FComUnrealToolsStyle::LevelSequenceIconBrushName = FName(TEXT("ComUnrealTools.LevelSequenceIcon"));
@@ -106,6 +107,7 @@ TSharedRef<FSlateStyleSet> FComUnrealToolsStyle::Create()
 	Style->Set(MaterialToolsTabIconBrushName,		new IMAGE_BRUSH(TEXT("MaterialToolsIcon_40x"),		Icon16x16));
 	Style->Set(ViewToolsTabIconBrushName,			new IMAGE_BRUSH(TEXT("ViewToolsIcon_40x"),			Icon16x16));
 	Style->Set(SequencerToolsTabIconBrushName,		new IMAGE_BRUSH(TEXT("SequencerToolsIcon_40x"),		Icon16x16));
+	Style->Set(ObjectToolsTabIconBrushName,			new IMAGE_BRUSH(TEXT("ObjectToolsIcon_40x"),		Icon16x16));
 	Style->Set(BlueprintIconBrushName,				new IMAGE_BRUSH(TEXT("BlueprintIcon"),				Icon16x16));
 	Style->Set(FolderIconBrushName,					new IMAGE_BRUSH(TEXT("FolderIcon"),					Icon16x16));
 	Style->Set(LevelSequenceIconBrushName,			new IMAGE_BRUSH(TEXT("LevelSequenceIcon"),			Icon16x16));
