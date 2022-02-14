@@ -85,6 +85,10 @@ const TArray<FAssetData>& FCUTAssetSearcher::GetAssets(int32 InIndex) const
 	}
 	return SearchData[InIndex].AssetData;
 }
+int32 FCUTAssetSearcher::GetMaxAssetsIndex() const
+{
+	return SearchData.Num();
+}
 
 float FCUTAssetSearcher::GetProgress() const
 {

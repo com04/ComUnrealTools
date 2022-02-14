@@ -252,41 +252,44 @@ void SCOTPropertySearcher::SearchStart()
 /** search finish callback */
 void SCOTPropertySearcher::FinishSearch()
 {
-	const TArray<FAssetData>& Assets = AssetSearcher.GetAssets(0);
-	for (const FAssetData& AssetData : Assets)
+	for (int32 AssetIndex = 0 ; AssetIndex < AssetSearcher.GetMaxAssetsIndex() ; ++AssetIndex)
 	{
-		FString AssetPathString = AssetData.ObjectPath.ToString();
+		const TArray<FAssetData>& Assets = AssetSearcher.GetAssets(AssetIndex);
+		for (const FAssetData& AssetData : Assets)
+		{
+			FString AssetPathString = AssetData.ObjectPath.ToString();
 
-		UObject* Object = FindObject<UObject>(NULL, *AssetPathString);
-		if (Object == nullptr) continue;
+			UObject* Object = FindObject<UObject>(NULL, *AssetPathString);
+			if (Object == nullptr) continue;
 		
-		TSharedPtr<FCOTPropertySearcherResult> RootSearchResult;
+			TSharedPtr<FCOTPropertySearcherResult> RootSearchResult;
 
-		UObject* TargetObject = Object;
-		if (UBlueprint* BPObject = Cast<UBlueprint>(TargetObject))
-		{
-			TargetObject = BPObject->GeneratedClass->ClassDefaultObject;
-			RootSearchResult = MakeShareable(new FCOTPropertySearcherResult(FText::FromName(AssetData.PackageName), BPObject));
-		}
-		else
-		{
-			UMaterial* MaterialObject = Cast<UMaterial>(TargetObject);
-			RootSearchResult = MakeShareable(new FCOTPropertySearcherResult(FText::FromName(AssetData.PackageName), MaterialObject));
-		}
+			UObject* TargetObject = Object;
+			if (UBlueprint* BPObject = Cast<UBlueprint>(TargetObject))
+			{
+				TargetObject = BPObject->GeneratedClass->ClassDefaultObject;
+				RootSearchResult = MakeShareable(new FCOTPropertySearcherResult(FText::FromName(AssetData.PackageName), BPObject));
+			}
+			else
+			{
+				UMaterial* MaterialObject = Cast<UMaterial>(TargetObject);
+				RootSearchResult = MakeShareable(new FCOTPropertySearcherResult(FText::FromName(AssetData.PackageName), MaterialObject));
+			}
 
-		const bool bUseDisplayNameInPropertySearch = UCUTDeveloperSettings::Get()->bUseDisplayNameInPropertySearch;
-		for (TFieldIterator<FProperty> PropertyIterator(TargetObject->GetClass()); PropertyIterator; ++PropertyIterator)
-		{
-			FCUTUtility::SearchProperty(TargetObject, *PropertyIterator, SearchTokens, true, bUseDisplayNameInPropertySearch, [RootSearchResult](const FProperty& InProperty, const FString& ValueString)
-					{
-						TSharedPtr<FCOTPropertySearcherResult> NewResult(new FCOTPropertySearcherResult(FText::FromString(ValueString), RootSearchResult));
-						RootSearchResult->AddChild(NewResult);
-					});
-		}
+			const bool bUseDisplayNameInPropertySearch = UCUTDeveloperSettings::Get()->bUseDisplayNameInPropertySearch;
+			for (TFieldIterator<FProperty> PropertyIterator(TargetObject->GetClass()); PropertyIterator; ++PropertyIterator)
+			{
+				FCUTUtility::SearchProperty(TargetObject, *PropertyIterator, SearchTokens, true, bUseDisplayNameInPropertySearch, [RootSearchResult](const FProperty& InProperty, const FString& ValueString)
+						{
+							TSharedPtr<FCOTPropertySearcherResult> NewResult(new FCOTPropertySearcherResult(FText::FromString(ValueString), RootSearchResult));
+							RootSearchResult->AddChild(NewResult);
+						});
+			}
 
-		if (RootSearchResult->GetChildren().Num() > 0)
-		{
-			ItemsFound.Add(RootSearchResult);
+			if (RootSearchResult->GetChildren().Num() > 0)
+			{
+				ItemsFound.Add(RootSearchResult);
+			}
 		}
 	}
 	

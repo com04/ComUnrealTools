@@ -47,12 +47,21 @@ public:
 	 * Objectや構造体は.区切りでマッチング "<変数名>.<変数名>=<値>"
 	 * @param InSearchStrings 検索する文字列
 	 * @param InSearchObjectProperty 保持しているUObjectの中身も辿って検索するか
+	 * @param InSearchDisplayName DisplayNameでも文字列マッチングを行うか
 	 * @param InFunction マッチングした際に呼び出される関数
-	 * @retval 見つかった個数
 	 */
-	static void SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction);
+	static void SearchProperty(const UObject* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction);
 protected:
-	static void SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly);
+	struct FPropertyObject
+	{
+		const void* Object;
+		bool bIsUObject;
+		static FPropertyObject CreateVoidObject(const void* InObject) { return FPropertyObject(InObject, false); }
+		static FPropertyObject CreateUObject(const UObject* InObject) { return FPropertyObject(InObject, true); }
+	private:
+		FPropertyObject(const void* InObject, bool bInIsUObject) : Object(InObject), bIsUObject(bInIsUObject) {}
+	};
+	static void SearchPropertyInternal(const FPropertyObject& InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly, const TArray<const void*>& InSearchedObjects);
 
 
 

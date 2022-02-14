@@ -23,6 +23,7 @@ public:
 			const TArray<UClass*>& SearchAssetClasses);
 	
 	const TArray<FAssetData>& GetAssets(int32 InIndex) const;
+	int32 GetMaxAssetsIndex() const;
 	float GetProgress() const;
 	bool IsAsyncLoading() const;
 	void Reset();

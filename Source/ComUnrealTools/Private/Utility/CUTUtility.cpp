@@ -130,19 +130,32 @@ FName FCUTUtility::GetIconBrushName(UMaterial* Material, UMaterialInstance* Mate
 }
 
 /**
- * プロパティを名前で検索する
- * "<変数名>=<値>" か "<DisplayName>=<値>" でマッチング。
- * Objectや構造体は.区切りでマッチング "<変数名>.<変数名>=<値>"
- * @param InSearchStrings 検索する文字列
- * @param InFunction マッチングした際に呼び出される関数
- * @retval 見つかった個数
- */
-void FCUTUtility::SearchProperty(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction)
+* プロパティを名前で検索する
+* "<変数名>=<値>" か "<DisplayName>=<値>" でマッチング。
+* Objectや構造体は.区切りでマッチング "<変数名>.<変数名>=<値>"
+* @param InSearchStrings 検索する文字列
+* @param InSearchObjectProperty 保持しているUObjectの中身も辿って検索するか
+* @param InSearchDisplayName DisplayNameでも文字列マッチングを行うか
+* @param InFunction マッチングした際に呼び出される関数
+*/
+void FCUTUtility::SearchProperty(const UObject* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction)
 {
-	SearchPropertyInternal(InObject, InProperty, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, TArray<FString>{FString(TEXT(""))}, false);
+	SearchPropertyInternal(FPropertyObject::CreateUObject(InObject), InProperty, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, TArray<FString>{FString(TEXT(""))}, false, {});
 }
-void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly)
+/**
+ * @param InParentString 親から引き継いだ名前（構造体や配列の中身等）
+ * @param bInStringParentOnly 親の文字列のみで表示するか（配列で[0]で止める場合等）
+ * @param InSearchedObjects 見つかったオブジェクトリスト。入れ子を防ぐ
+ */
+void FCUTUtility::SearchPropertyInternal(const FPropertyObject& InObject, const FProperty* InProperty, const TArray<FString>& InSearchStrings, bool InSearchObjectProperty, bool InSearchDisplayName, TFunction<void(const FProperty& InProperty, const FString& ValueString)> InFunction, const TArray<FString>& InParentString, bool bInStringParentOnly, const TArray<const void*>& InSearchedObjects)
 {
+	if (InSearchedObjects.Find(InObject.Object) != INDEX_NONE)
+	{
+		return;
+	}
+	TArray<const void*> SearchedObjects = InSearchedObjects;
+	SearchedObjects.Add(InObject.Object);
+
 	FName ID = InProperty->GetID();
 	FString NamePrivate = InProperty->NamePrivate.ToString();
 	FString DisplayNameText = InProperty->GetDisplayNameText().ToString();
@@ -217,7 +230,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		// from PythonizeValueImpl
 		if (const FByteProperty* ByteProp = CastField<const FByteProperty>(InProperty))
 		{
-			const uint8* Value = InProperty->ContainerPtrToValuePtr<uint8>(InObject);
+			const uint8* Value = InProperty->ContainerPtrToValuePtr<uint8>(InObject.Object);
 			if (Value)
 			{
 				const UEnum* EnumType = ByteProp->Enum;
@@ -238,7 +251,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		else if (const FEnumProperty* EnumProp = CastField<const FEnumProperty>(InProperty))
 		{
 			// C++宣言の列挙体
-			const uint8* Value = InProperty->ContainerPtrToValuePtr<uint8>(InObject);
+			const uint8* Value = InProperty->ContainerPtrToValuePtr<uint8>(InObject.Object);
 			const UEnum* EnumType = EnumProp->GetEnum();
 			if (Value && EnumType)
 			{
@@ -254,7 +267,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FBoolProperty* BoolProp = CastField<const FBoolProperty>(InProperty))
 		{
-			const void* ValueAddress = InProperty->ContainerPtrToValuePtr<void>(InObject);
+			const void* ValueAddress = InProperty->ContainerPtrToValuePtr<void>(InObject.Object);
 			if (ValueAddress)
 			{
 				// bit fieldが有るのでこの関数でbit maskして取得する
@@ -264,7 +277,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FIntProperty* IntProp = CastField<const FIntProperty>(InProperty))
 		{
-			const int32* Value = InProperty->ContainerPtrToValuePtr<int32>(InObject);
+			const int32* Value = InProperty->ContainerPtrToValuePtr<int32>(InObject.Object);
 			if (Value)
 			{
 				NameCheckFunc(FString::FromInt(*Value), TEXT("Int"));
@@ -272,7 +285,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FInt64Property* Int64Prop = CastField<const FInt64Property>(InProperty))
 		{
-			const int64* Value = InProperty->ContainerPtrToValuePtr<int64>(InObject);
+			const int64* Value = InProperty->ContainerPtrToValuePtr<int64>(InObject.Object);
 			if (Value)
 			{
 				NameCheckFunc(FString::FromInt(*Value), TEXT("Int"));
@@ -280,7 +293,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FFloatProperty* FloatProp = CastField<const FFloatProperty>(InProperty))
 		{
-			const float* Value = InProperty->ContainerPtrToValuePtr<float>(InObject);
+			const float* Value = InProperty->ContainerPtrToValuePtr<float>(InObject.Object);
 			if (Value)
 			{
 				NameCheckFunc(FString::SanitizeFloat(*Value), TEXT("Float"));
@@ -288,7 +301,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FStrProperty* StrProp = CastField<const FStrProperty>(InProperty))
 		{
-			const FString* Value = InProperty->ContainerPtrToValuePtr<FString>(InObject);
+			const FString* Value = InProperty->ContainerPtrToValuePtr<FString>(InObject.Object);
 			if (Value)
 			{
 				NameCheckFunc(*Value, TEXT("String"));
@@ -296,7 +309,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FNameProperty* NameProp = CastField<const FNameProperty>(InProperty))
 		{
-			const FName* Value = InProperty->ContainerPtrToValuePtr<FName>(InObject);
+			const FName* Value = InProperty->ContainerPtrToValuePtr<FName>(InObject.Object);
 			if (Value)
 			{
 				NameCheckFunc(*Value->ToString(), TEXT("Name"));
@@ -304,7 +317,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FTextProperty* TextProp = CastField<const FTextProperty>(InProperty))
 		{
-			const FText* Value = InProperty->ContainerPtrToValuePtr<FText>(InObject);
+			const FText* Value = InProperty->ContainerPtrToValuePtr<FText>(InObject.Object);
 			if (Value)
 			{
 				NameCheckFunc(*Value->ToString(), TEXT("Text"));
@@ -320,15 +333,15 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 				{
 					const UObject* ObjectPtr = nullptr;
 					// 保持しているコンポーネント
-					if (const void* ValuePtr = ObjProp->ContainerPtrToValuePtr<const void>(InObject))
+					if (const void* ValuePtr = ObjProp->ContainerPtrToValuePtr<const void>(InObject.Object))
 					{
 						ObjectPtr = ObjProp->GetObjectPropertyValue(ValuePtr);
 					}
 					// BPアセットの場合はコンポーネントをそのまま持っていないので、Classの中から引っ張る
-					if (!ObjectPtr)
+					if (!ObjectPtr && InObject.bIsUObject)
 					{
 						// UObjectじゃない可能性は？
-						UObject* InUObject = (UObject*)(InObject);
+						UObject* InUObject = (UObject*)(InObject.Object);
 						if (InUObject)
 						{
 							UBlueprintGeneratedClass* BPGC = Cast<UBlueprintGeneratedClass>(InUObject->GetClass());
@@ -359,7 +372,7 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 					{
 						for (TFieldIterator<FProperty> PropertyIterator(ObjProp->PropertyClass); PropertyIterator; ++PropertyIterator)
 						{
-							SearchPropertyInternal(ObjectPtr, *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false);
+							SearchPropertyInternal(FPropertyObject::CreateUObject(ObjectPtr), *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false, SearchedObjects);
 						}
 					}
 				}
@@ -367,12 +380,12 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		}
 		else if (const FStructProperty* StructProp = CastField<const FStructProperty>(InProperty))
 		{
-			const void* Value = InProperty->ContainerPtrToValuePtr<const void>(InObject);
+			const void* Value = InProperty->ContainerPtrToValuePtr<const void>(InObject.Object);
 			if (Value && StructProp->Struct)
 			{
 				for (TFieldIterator<FProperty> PropertyIterator(StructProp->Struct); PropertyIterator; ++PropertyIterator)
 				{
-					SearchPropertyInternal(Value, *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false);
+					SearchPropertyInternal(FPropertyObject::CreateVoidObject(Value), *PropertyIterator, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(-1, TEXT(".")), false, SearchedObjects);
 				}
 			}
 		}
@@ -380,11 +393,11 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		{
 			const FString Separator(UseStoreType(ArrayProperty->Inner) ? TEXT(".") : TEXT(""));
 			
-			FScriptArrayHelper ScriptHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(InObject));
+			FScriptArrayHelper ScriptHelper(ArrayProperty, ArrayProperty->ContainerPtrToValuePtr<void>(InObject.Object));
 			for (int32 Index = 0 ; Index < ScriptHelper.Num() ; ++Index)
 			{
 				const void* Value = ScriptHelper.GetRawPtr(Index);
-				SearchPropertyInternal(Value, ArrayProperty->Inner, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, *Separator), true);
+				SearchPropertyInternal(FPropertyObject::CreateVoidObject(Value), ArrayProperty->Inner, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, *Separator), true, SearchedObjects);
 				
 			}
 		}
@@ -392,23 +405,23 @@ void FCUTUtility::SearchPropertyInternal(const void* InObject, const FProperty* 
 		{
 			const FString Separator(UseStoreType(SetProperty->ElementProp) ? TEXT(".") : TEXT(""));
 			
-			FScriptSetHelper ScriptHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(InObject));
+			FScriptSetHelper ScriptHelper(SetProperty, SetProperty->ContainerPtrToValuePtr<void>(InObject.Object));
 			for (int32 Index = 0 ; Index < ScriptHelper.Num() ; ++Index)
 			{
 				const void* IndexValuePtr = ScriptHelper.GetElementPtr(Index);
-				SearchPropertyInternal(IndexValuePtr, SetProperty->ElementProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, *Separator), true);
+				SearchPropertyInternal(FPropertyObject::CreateVoidObject(IndexValuePtr), SetProperty->ElementProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, *Separator), true, SearchedObjects);
 			}
 		}
 		else if (const FMapProperty* MapProperty = CastField<const FMapProperty>(InProperty))
 		{
-			FScriptMapHelper ScriptHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(InObject));
+			FScriptMapHelper ScriptHelper(MapProperty, MapProperty->ContainerPtrToValuePtr<void>(InObject.Object));
 			for (int32 Index = 0 ; Index < ScriptHelper.Num() ; ++Index)
 			{
 				if (ScriptHelper.IsValidIndex(Index))
 				{
 					const uint8* PairPtr = ScriptHelper.GetPairPtr(Index);
-					SearchPropertyInternal(PairPtr, MapProperty->KeyProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, TEXT(".Key")), true);
-					SearchPropertyInternal(PairPtr, MapProperty->ValueProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, TEXT(".Value")), true);
+					SearchPropertyInternal(FPropertyObject::CreateVoidObject(PairPtr), MapProperty->KeyProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, TEXT(".Key")), true, SearchedObjects);
+					SearchPropertyInternal(FPropertyObject::CreateVoidObject(PairPtr), MapProperty->ValueProp, InSearchStrings, InSearchObjectProperty, InSearchDisplayName, InFunction, CreateParentStrings(Index, TEXT(".Value")), true, SearchedObjects);
 				}
 			}
 		}
