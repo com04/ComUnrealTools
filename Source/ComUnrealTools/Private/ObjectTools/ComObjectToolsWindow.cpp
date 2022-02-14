@@ -33,7 +33,7 @@ void SComObjectToolsWindow::Construct(const FArguments& InArgs, const TSharedRef
 	TabManager = FGlobalTabmanager::Get()->NewTabManager(ConstructUnderMajorTab);
 	
 	TabManager->RegisterTabSpawner(COTPropertySearcherTabId, FOnSpawnTab::CreateRaw(this, &SComObjectToolsWindow::HandleTabManagerSpawnTab, COTPropertySearcherTabId))
-		.SetDisplayName(LOCTEXT("COTPropertySearcherTabTitle", "Property Searcher"));
+		.SetDisplayName(LOCTEXT("COTPropertySearcherTabTitle", "Property Search"));
 	
 	// create tab layout
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("ComObjectTools")

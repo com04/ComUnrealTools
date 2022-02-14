@@ -44,7 +44,7 @@ void SComMaterialToolsWindow::Construct(const FArguments& InArgs, const TSharedR
 		.SetDisplayName(LOCTEXT("CMTNodeSearcherTabTitle", "Node Search"));
 	
 	TabManager->RegisterTabSpawner(CMTParameterSearcherTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTParameterSearcherTabId))
-		.SetDisplayName(LOCTEXT("CMTParameterSearcherTabTitle", "Parameter Searcher"));
+		.SetDisplayName(LOCTEXT("CMTParameterSearcherTabTitle", "Parameter Search"));
 	
 	TabManager->RegisterTabSpawner(CMTParameterDumpTabId, FOnSpawnTab::CreateRaw(this, &SComMaterialToolsWindow::HandleTabManagerSpawnTab, CMTParameterDumpTabId))
 		.SetDisplayName(LOCTEXT("CMTParameterDumpTabTitle", "Parameter Dump"));

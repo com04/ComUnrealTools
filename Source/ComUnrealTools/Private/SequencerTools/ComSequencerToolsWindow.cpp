@@ -33,7 +33,7 @@ void SComSequencerToolsWindow::Construct(const FArguments& InArgs, const TShared
 	TabManager = FGlobalTabmanager::Get()->NewTabManager(ConstructUnderMajorTab);
 	
 	TabManager->RegisterTabSpawner(CSTTrackSearcherTabId, FOnSpawnTab::CreateRaw(this, &SComSequencerToolsWindow::HandleTabManagerSpawnTab, CSTTrackSearcherTabId))
-		.SetDisplayName(LOCTEXT("CSTTrackSearcherTabTitle", "Track Searcher"));
+		.SetDisplayName(LOCTEXT("CSTTrackSearcherTabTitle", "Track Search"));
 	
 	// create tab layout
 	const TSharedRef<FTabManager::FLayout> Layout = FTabManager::NewLayout("ComSequencerTools")
