@@ -347,20 +347,23 @@ void FCUTUtility::SearchPropertyInternal(const FPropertyObject& InObject, const 
 							UBlueprintGeneratedClass* BPGC = Cast<UBlueprintGeneratedClass>(InUObject->GetClass());
 							if (BPGC)
 							{
-								const TArray<USCS_Node*>& ActorBlueprintNodes = BPGC->SimpleConstructionScript->GetAllNodes();
-								for (USCS_Node* Node : ActorBlueprintNodes)
+								if (BPGC->SimpleConstructionScript)
 								{
-									if (Node->ComponentClass == ObjProp->PropertyClass)
+									const TArray<USCS_Node*>& ActorBlueprintNodes = BPGC->SimpleConstructionScript->GetAllNodes();
+									for (USCS_Node* Node : ActorBlueprintNodes)
 									{
-										UObject* CompTemplate = Node->GetActualComponentTemplate(BPGC);
-										if (CompTemplate)
+										if (Node->ComponentClass == ObjProp->PropertyClass)
 										{
-											// ここで生成されたComponent名には_GEN_VARIABLEがsuffixに付く
-											FString TemplateName = CompTemplate->GetName().Replace(TEXT("_GEN_VARIABLE"), TEXT(""));
-											if (NamePrivate.Compare(TemplateName) == 0)
+											UObject* CompTemplate = Node->GetActualComponentTemplate(BPGC);
+											if (CompTemplate)
 											{
-												ObjectPtr = CompTemplate;
-												break;
+												// ここで生成されたComponent名には_GEN_VARIABLEがsuffixに付く
+												FString TemplateName = CompTemplate->GetName().Replace(TEXT("_GEN_VARIABLE"), TEXT(""));
+												if (NamePrivate.Compare(TemplateName) == 0)
+												{
+													ObjectPtr = CompTemplate;
+													break;
+												}
 											}
 										}
 									}
