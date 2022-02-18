@@ -28,6 +28,7 @@ public:
 public:
 
 	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InOwnerTableView);
+	virtual ~SCVTRenderTargetViewerResultRow();
 
 	BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& ColumnName) override;
@@ -49,9 +50,8 @@ private:
 	TSharedPtr<FCVTRenderTargetViewerResult> Info;
 	TSharedPtr<SImage> PreviewImage;
 	
-	// 不透明表示用マテリアル
-	UPROPERTY()
-	UMaterialInstanceDynamic* OpaqueImage;
+	// 描画リソース管理
+	class FCVTRenderTargetViewerResultRowResources* RenderingResources;
 	
 	TArray<TSharedPtr<SBorder>>  BorderColor1List;
 	TArray<TSharedPtr<SBorder>>  BorderColor2List;

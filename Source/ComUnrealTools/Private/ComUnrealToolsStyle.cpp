@@ -32,7 +32,7 @@ const FName FComUnrealToolsStyle::MaterialVirtualTextureIconBrushName = FName(TE
 const FName FComUnrealToolsStyle::MenuBGBrushName = FName(TEXT("ComUnrealTools.MenuBackground"));
 const FName FComUnrealToolsStyle::MenuBG2BrushName = FName(TEXT("ComUnrealTools.MenuBackground2"));
 const FName FComUnrealToolsStyle::MenuBGActiveBrushName = FName(TEXT("ComUnrealTools.MenuBackgroundActive"));
-UMaterial* FComUnrealToolsStyle::ImageOpaqueMaterial = nullptr;
+TSharedPtr<UMaterial> FComUnrealToolsStyle::ImageOpaqueMaterial;
 TSharedPtr<FSlateStyleSet> FComUnrealToolsStyle::StyleInstance = NULL;
 
 void FComUnrealToolsStyle::Initialize()
@@ -58,7 +58,7 @@ FName FComUnrealToolsStyle::GetStyleSetName()
 }
 UMaterial* FComUnrealToolsStyle::GetImageOpaqueMaterial()
 {
-	return ImageOpaqueMaterial;
+	return ImageOpaqueMaterial.Get();
 }
 
 FSlateFontInfo FComUnrealToolsStyle::GetLargeFontStyle()
@@ -126,9 +126,9 @@ TSharedRef<FSlateStyleSet> FComUnrealToolsStyle::Create()
 	Style->Set(MenuBG2BrushName,					new BOX_BRUSH("MenuBackground2",					BGTile));
 	Style->Set(MenuBGActiveBrushName,				new BOX_BRUSH("MenuBackgroundActive",				BGTile));
 
-	if (!IsValid(ImageOpaqueMaterial))
+	if (!ImageOpaqueMaterial.IsValid())
 	{
-		ImageOpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("/ComUnrealTools/Materials/M_CUTImageOpaque")));
+		ImageOpaqueMaterial = MakeShareable(Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("/ComUnrealTools/Materials/M_CUTImageOpaque"))));
 	}
 	return Style;
 }

@@ -52,7 +52,7 @@ public:
 
 private:
 	static TSharedRef<class FSlateStyleSet> Create();
-	static UMaterial* ImageOpaqueMaterial;
+	static TSharedPtr<UMaterial> ImageOpaqueMaterial;
 
 private:
 

@@ -15,12 +15,48 @@
 #define LOCTEXT_NAMESPACE "CVTRenderTargetViewerResultRow"
 
 
+/*
+ * UObjectな描画リソース管理
+ * 安全に生存管理されるように。 from SRetainerWidget.cpp
+ */
+class FCVTRenderTargetViewerResultRowResources : public FDeferredCleanupInterface, public FGCObject
+{
+public:
+	FCVTRenderTargetViewerResultRowResources()
+		: PreviewOpaqueMaterial(nullptr)
+	{}
+
+	~FCVTRenderTargetViewerResultRowResources()
+	{
+	}
+
+	/** FGCObject interface */
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) override
+	{
+		Collector.AddReferencedObject(PreviewOpaqueMaterial);
+	}
+
+	virtual FString GetReferencerName() const override
+	{
+		return TEXT("FCVTRenderTargetViewerResultRowResources");
+	}
+	
+public:
+	// 不透明表示用マテリアル
+	UMaterialInstanceDynamic* PreviewOpaqueMaterial;
+};
+
 void SCVTRenderTargetViewerResultRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InOwnerTableView)
 {
 	Info = InArgs._Info;
-	OpaqueImage = 0;
+	RenderingResources = new FCVTRenderTargetViewerResultRowResources;
 	SetBorderImage(FComUnrealToolsStyle::Get().GetBrush(FComUnrealToolsStyle::MenuBGBrushName));
 	SMultiColumnTableRow<TSharedPtr<FCVTRenderTargetViewerResult>>::Construct(FSuperRowType::FArguments(), InOwnerTableView);
+}
+SCVTRenderTargetViewerResultRow::~SCVTRenderTargetViewerResultRow()
+{
+	// Begin deferred cleanup of rendering resources.  DO NOT delete here.  Will be deleted when safe
+	BeginCleanup(RenderingResources);
 }
 
 TSharedRef<SWidget> SCVTRenderTargetViewerResultRow::GenerateWidgetForColumn(const FName& ColumnName)
@@ -146,19 +182,20 @@ FSlateImageBrush* SCVTRenderTargetViewerResultRow::CreateSlateImageBrush()
 	const bool bWithoutAlpha = SCVTRenderTargetViewer::IsPreviewWithoutAlpha();
 	
 	UObject* Resource = Info->RenderTarget.Get();
-	if (bWithoutAlpha)
+	if (bWithoutAlpha && RenderingResources)
 	{
 		// 不透明表示する為にマテリアルで反映する
-		if (!IsValid(OpaqueImage))
+		if (!IsValid(RenderingResources->PreviewOpaqueMaterial))
 		{
 			UMaterial* DefaultOpaqueMaterial = FComUnrealToolsStyle::GetImageOpaqueMaterial();
-			OpaqueImage = UKismetMaterialLibrary::CreateDynamicMaterialInstance(DefaultOpaqueMaterial, DefaultOpaqueMaterial);
-			if (IsValid(OpaqueImage))
-			{
-				OpaqueImage->SetTextureParameterValue(TEXT("Texture"), Info->RenderTarget.Get());
-			}
+			RenderingResources->PreviewOpaqueMaterial= UKismetMaterialLibrary::CreateDynamicMaterialInstance(DefaultOpaqueMaterial, DefaultOpaqueMaterial);
 		}
-		Resource = OpaqueImage;
+
+		if (IsValid(RenderingResources->PreviewOpaqueMaterial))
+		{
+			RenderingResources->PreviewOpaqueMaterial->SetTextureParameterValue(TEXT("Texture"), Info->RenderTarget.Get());
+		}
+		Resource = RenderingResources->PreviewOpaqueMaterial;
 	}
 	return new FSlateImageBrush(Resource, SCVTRenderTargetViewer::GetPreviewSizeV2());
 }
