@@ -32,7 +32,7 @@ const FName FComUnrealToolsStyle::MaterialVirtualTextureIconBrushName = FName(TE
 const FName FComUnrealToolsStyle::MenuBGBrushName = FName(TEXT("ComUnrealTools.MenuBackground"));
 const FName FComUnrealToolsStyle::MenuBG2BrushName = FName(TEXT("ComUnrealTools.MenuBackground2"));
 const FName FComUnrealToolsStyle::MenuBGActiveBrushName = FName(TEXT("ComUnrealTools.MenuBackgroundActive"));
-TSharedPtr<UMaterial> FComUnrealToolsStyle::ImageOpaqueMaterial;
+TWeakObjectPtr<UMaterial> FComUnrealToolsStyle::ImageOpaqueMaterial;
 TSharedPtr<FSlateStyleSet> FComUnrealToolsStyle::StyleInstance = NULL;
 
 void FComUnrealToolsStyle::Initialize()
@@ -128,7 +128,7 @@ TSharedRef<FSlateStyleSet> FComUnrealToolsStyle::Create()
 
 	if (!ImageOpaqueMaterial.IsValid())
 	{
-		ImageOpaqueMaterial = MakeShareable(Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), nullptr, TEXT("/ComUnrealTools/Materials/M_CUTImageOpaque"))));
+		ImageOpaqueMaterial = Cast<UMaterial>(StaticLoadObject(UMaterial::StaticClass(), GEngine, TEXT("/ComUnrealTools/Materials/M_CUTImageOpaque")));
 	}
 	return Style;
 }
