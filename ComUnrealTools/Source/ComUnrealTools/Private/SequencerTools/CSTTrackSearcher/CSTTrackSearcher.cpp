@@ -443,23 +443,24 @@ void SCSTTrackSearcher::SearchMovieSceneBinding(UMovieScene* InMovieScene, const
 		{
 			// Track上で見える名前
 			ObjectNames.Add(Spawnable->GetName());
+
+			// BPのプロパティ
+			UObject* SpawnableObject = Spawnable->GetObjectTemplate();
+			if ((GetCheckBoxUsePropertySearch() == ECheckBoxState::Checked) && SpawnableObject)
+			{
+				const bool bUseDisplayNameInPropertySearch = UCUTDeveloperSettings::Get()->bUseDisplayNameInPropertySearch;
+				for (TFieldIterator<FProperty> PropertyIterator(SpawnableObject->GetClass()); PropertyIterator; ++PropertyIterator)
+				{
+					FCUTUtility::SearchProperty(SpawnableObject, *PropertyIterator, SearchTokens, false, bUseDisplayNameInPropertySearch, [&FindProperty](const FProperty& InProperty, const FString& ValueString)
+							{
+								FindProperty.Add(ValueString);
+							});
+				}
+			}
 		}
 		// 内部的な名前
 		ObjectNames.Add(InBinding->GetName());
 
-		// BPのプロパティ
-		if ((GetCheckBoxUsePropertySearch() == ECheckBoxState::Checked) && Spawnable->GetObjectTemplate())
-		{
-			UObject* SpwanableObject = Spawnable->GetObjectTemplate();
-			const bool bUseDisplayNameInPropertySearch = UCUTDeveloperSettings::Get()->bUseDisplayNameInPropertySearch;
-			for (TFieldIterator<FProperty> PropertyIterator(SpwanableObject->GetClass()); PropertyIterator; ++PropertyIterator)
-			{
-				FCUTUtility::SearchProperty(SpwanableObject, *PropertyIterator, SearchTokens, false, bUseDisplayNameInPropertySearch, [&FindProperty](const FProperty& InProperty, const FString& ValueString)
-						{
-							FindProperty.Add(ValueString);
-						});
-			}
-		}
 		for (const FString& Name : ObjectNames)
 		{
 			// Track側に一致が有る or プロパティ側に一致が有る or このBP自体がマッチしているか
