@@ -6,6 +6,8 @@
 
 #include "SlateFwd.h"
 
+#include "MaterialTools/CMTTextureFind/CMTTextureFindResultData.h"
+
 typedef TSharedPtr<FCMTTextureFindResultMaterialData> FCMTTextureFindResultShare;
 typedef STreeView<FCMTTextureFindResultShare>  SCMTTextureFindTreeViewType;
 

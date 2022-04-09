@@ -9,6 +9,7 @@
 #include "AssetData.h"
 #include "Engine/Font.h"
 #include "Engine/Texture.h"
+#include "Materials/MaterialInstance.h"
 #include "Materials/MaterialInterface.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"

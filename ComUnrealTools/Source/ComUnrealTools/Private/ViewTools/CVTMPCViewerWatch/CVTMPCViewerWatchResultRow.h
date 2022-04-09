@@ -8,6 +8,7 @@
 
 #include "Containers/Array.h"
 #include "SlateFwd.h"
+#include "SlateOptMacros.h"
 #include "Templates/SharedPointer.h"
 #include "Widgets/Views/STableRow.h"
 

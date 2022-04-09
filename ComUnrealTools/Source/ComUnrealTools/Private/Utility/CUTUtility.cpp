@@ -3,6 +3,7 @@
 
 #include "CUTUtility.h"
 #include "ComUnrealTools.h"
+#include "ComUnrealToolsStyle.h"
 #include "UnrealTools/CUTDeveloperSettings.h"
 
 #include "DesktopPlatformModule.h"
@@ -26,7 +27,6 @@
 #include "PhysicsEngine/BodySetup.h"
 #include "PhysicsEngine/AggregateGeom.h"
 #include "Subsystems/AssetEditorSubsystem.h"
-
 
 /**
  * Get master material from Material instance

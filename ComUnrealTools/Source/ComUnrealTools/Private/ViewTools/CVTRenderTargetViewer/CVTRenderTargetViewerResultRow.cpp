@@ -7,6 +7,7 @@
 #include "ComUnrealToolsStyle.h"
 #include "Utility/CUTUtility.h"
 
+#include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Widgets/SWidget.h"

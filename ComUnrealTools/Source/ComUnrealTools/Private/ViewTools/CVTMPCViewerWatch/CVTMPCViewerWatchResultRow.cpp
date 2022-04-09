@@ -4,7 +4,10 @@
 #include "CVTMPCViewerWatch.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
+#include "ViewTools/CVTMPCViewer/CVTMPCViewerResult.h"
+#include "Utility/CUTUtility.h"
 
+#include "Materials/MaterialParameterCollection.h"
 #include "Widgets/SWidget.h"
 
 

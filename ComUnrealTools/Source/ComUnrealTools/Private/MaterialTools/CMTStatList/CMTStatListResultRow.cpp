@@ -4,7 +4,9 @@
 #include "CMTStatList.h"
 #include "ComUnrealTools.h"
 #include "ComUnrealToolsStyle.h"
+#include "Utility/CUTUtility.h"
 
+#include "Materials/MaterialInstance.h"
 #include "Widgets/SWidget.h"
 
 

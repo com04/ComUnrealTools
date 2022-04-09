@@ -3,6 +3,7 @@
 #include "CVTMPCViewerResult.h"
 
 #include "Materials/MaterialParameterCollection.h"
+#include "Materials/MaterialParameterCollectionInstance.h"
 
 
 
