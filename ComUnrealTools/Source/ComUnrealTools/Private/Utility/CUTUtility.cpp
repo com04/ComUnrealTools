@@ -563,7 +563,7 @@ bool FCUTUtility::ExportTxt(const FString& TitleName, const FString& DefaultFile
 		FArchive* SaveFile = FFileManagerGeneric::Get().CreateFileWriter(*OpenFilenames[0]);
 		if (SaveFile)
 		{
-			UTF8CHAR UTF8BOM[] = {0xEF, 0xBB, 0xBF};
+			UTF8CHAR UTF8BOM[] = {(UTF8CHAR)0xEF, (UTF8CHAR)0xBB, (UTF8CHAR)0xBF};
 			SaveFile->Serialize(&UTF8BOM, UE_ARRAY_COUNT(UTF8BOM) * sizeof(UTF8CHAR));
 			FTCHARToUTF8 UTF8Text(*TextData);
 			SaveFile->Serialize((UTF8CHAR*)UTF8Text.Get(), UTF8Text.Length() * sizeof(UTF8CHAR));

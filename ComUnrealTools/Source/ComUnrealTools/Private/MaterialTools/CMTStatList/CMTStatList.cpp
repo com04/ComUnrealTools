@@ -570,8 +570,11 @@ void SCMTStatList::SetupMaterialResult(TSharedPtr<FCMTStatListResult>& Result, U
 					}
 				}
 			}
-			
+#if ENGINE_MAJOR_VERSION == 5
+			Result->UseRenderAfterDOF = (MasterMaterial->TranslucencyPass == MTP_AfterDOF) ? 1 : 0;
+#else
 			Result->UseRenderAfterDOF = MasterMaterial->bEnableSeparateTranslucency ? 1 : 0;
+#endif
 			Result->UsePositionOffset = MaterialShaderMap->UsesWorldPositionOffset() ? 1 : 0;
 			Result->UseDepthOffset = MaterialShaderMap->UsesPixelDepthOffset() ? 1 : 0;
 			Result->UseRefraction = (MaterialResource->IsDistorted()) ? 1 : 0;

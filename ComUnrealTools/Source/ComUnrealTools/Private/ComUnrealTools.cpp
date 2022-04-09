@@ -49,15 +49,24 @@ void FComUnrealToolsModule::StartupModule()
 		}
 	}
 
-	// Add "Menubar - [Window] -> [Developer Tools]"
 	const IWorkspaceMenuStructure& MenuStructure = WorkspaceMenu::GetMenuStructure();
 
 	// グループ
+#if ENGINE_MAJOR_VERSION == 5
+	// Add "Menebar - [Tools] -> [INSTRUMENTATION]"
+	TSharedRef<FWorkspaceItem> ComUnrealToolsGroup = MenuStructure.GetDeveloperToolsAuditCategory()->GetParent()->AddGroup(
+		LOCTEXT("WorkspaceMenu_ComUnrealToolsCategory", "com Unreal Tools"),
+		LOCTEXT("ComUnrealToolsMenuTooltip", "Open a com Unreal Tools tab."),
+		FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::UnrealToolsTabIconBrushName),
+		true);
+#else
+	// Add "Menubar - [Window] -> [Developer Tools]"
 	TSharedRef<FWorkspaceItem> ComUnrealToolsGroup = MenuStructure.GetDeveloperToolsMiscCategory()->AddGroup(
 		LOCTEXT("WorkspaceMenu_ComUnrealToolsCategory", "com Unreal Tools"),
 		LOCTEXT("ComUnrealToolsMenuTooltip", "Open a com Unreal Tools tab."),
 		FSlateIcon(FComUnrealToolsStyle::Get().GetStyleSetName(), FComUnrealToolsStyle::UnrealToolsTabIconBrushName),
 		true);
+#endif
 	
 	// マテリアルツール
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(MaterialToolsTabName, FOnSpawnTab::CreateRaw(this, &FComUnrealToolsModule::OnSpawnPluginTab))
