@@ -50,7 +50,7 @@ public class ComUnrealTools : ModuleRules
 				"DesktopPlatform",
 				"MainFrame",
 				"RenderCore",
-				"AppFrameWork",
+				"AppFramework",
 				"DeveloperSettings",
 				"LevelSequence",
 				"MovieScene",
