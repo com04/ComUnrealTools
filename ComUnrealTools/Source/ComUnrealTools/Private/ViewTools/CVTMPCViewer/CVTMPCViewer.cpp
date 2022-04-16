@@ -180,27 +180,32 @@ void SCVTMPCViewer::Tick(const FGeometry& AllottedGeometry, const double InCurre
 		{
 			World = GEditor->PlayWorld;
 		}
-		// Todo: Standalone再生中のWorldが取れない...
 
 		bool bChangedParameter = false;
 		if (World)
 		{
 			UMaterialParameterCollectionInstance* MPCInstance = World->GetParameterCollectionInstance(SelectedMPC.Get());
-			for (TSharedPtr<FCVTMPCViewerResult>& Result : ResultList)
+			for (TSharedPtr<FCVTMPCViewerResult> Result : ResultList)
 			{
-				Result->UpdateDefaultValue();
-				bool bChanged = Result->UpdateParameterValue(MPCInstance);
-				bChangedParameter = bChangedParameter || bChanged;
+				if (Result.IsValid())
+				{
+					Result->UpdateDefaultValue();
+					bool bChanged = Result->UpdateParameterValue(MPCInstance);
+					bChangedParameter = bChangedParameter || bChanged;
+				}
 			}
 		}
 		else
 		{
-			for (TSharedPtr<FCVTMPCViewerResult>& Result : ResultList)
+			for (TSharedPtr<FCVTMPCViewerResult> Result : ResultList)
 			{
 				// パラメーターがEditorで変更された時用
-				Result->UpdateDefaultValue();
-				Result->ScalarValue = Result->DefaultScalarValue;
-				Result->VectorValue = Result->DefaultVectorValue;
+				if (Result.IsValid())
+				{
+					Result->UpdateDefaultValue();
+					Result->ScalarValue = Result->DefaultScalarValue;
+					Result->VectorValue = Result->DefaultVectorValue;
+				}
 			}
 		}
 		if (MPCNoChangedBox.IsValid())
