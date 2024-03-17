@@ -2,6 +2,7 @@
 	"BuildId": "23058290",
 	"Modules": 
 	{
-		"ComUnrealTools": "UnrealEditor-ComUnrealTools.dll"
+		"ComUnrealTools": "UnrealEditor-ComUnrealTools.dll",
+		"ComUnrealToolsEd": "UnrealEditor-ComUnrealToolsEd.dll"
 	}
 }
