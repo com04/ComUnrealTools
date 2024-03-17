@@ -7,13 +7,14 @@
 #include "ComUnrealToolsStyle.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
+#include "AssetRegistry/AssetData.h"
 #include "AssetThumbnail.h"
 #include "Engine/Texture.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstance.h"
 #include "PropertyCustomizationHelpers.h"
 #include "PropertyHandle.h"
+#include "Styling/AppStyle.h"
 #include "Widgets/Input/SSearchBox.h"
 #include "Widgets/Layout/SScrollBox.h"
 
@@ -95,7 +96,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 				[
 					SNew(SBorder)
 					.Padding(4.0f)
-					.BorderImage(FEditorStyle::GetBrush("PropertyEditor.AssetThumbnailShadow"))
+					.BorderImage(FAppStyle::GetBrush("PropertyEditor.AssetTileItem.DropShadow"))
 					.OnMouseDoubleClick(this, &SCMTTextureFind::OnMaterialThumbnailMouseDoubleClick)
 					[
 						SNew(SBox)
@@ -104,7 +105,7 @@ void SCMTTextureFind::Construct(const FArguments& InArgs)
 						[
 							SNew(SBorder)
 							.Padding(1)
-							.BorderImage(FEditorStyle::GetBrush("AssetThumbnail", ".Border"))
+							.BorderImage(FAppStyle::GetBrush("NoBorder"))
 							.BorderBackgroundColor(FLinearColor::Black)
 							[
 								SelectedThumbnail->MakeThumbnailWidget()
@@ -524,7 +525,7 @@ void SCMTTextureFind::FinishSearch()
 	
 	for (auto It = MaterialAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterial* Material = FindObject<UMaterial>(NULL, *AssetPathString);
 		if (Material == nullptr) continue;
@@ -534,7 +535,7 @@ void SCMTTextureFind::FinishSearch()
 	
 	for (auto It = MaterialFunctionAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterialFunction* MaterialFunction = FindObject<UMaterialFunction>(NULL, *AssetPathString);
 		if (MaterialFunction == nullptr) continue;
@@ -544,7 +545,7 @@ void SCMTTextureFind::FinishSearch()
 	
 	for (auto It = MaterialInstanceAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterialInstance* MaterialInstance = FindObject<UMaterialInstance>(NULL, *AssetPathString);
 		if (MaterialInstance == nullptr) continue;
@@ -754,7 +755,7 @@ void SCMTTextureFind::SearchTexture(FCMTTextureFindResultData* TextureData, UMat
 	{
 		return;
 	}
-	const TArray<UMaterialExpression*>& MaterialExpressions = TargetMaterial->FunctionExpressions;
+	const TConstArrayView<TObjectPtr<UMaterialExpression>>& MaterialExpressions = TargetMaterial->GetExpressions();
 
 	// insert child
 	TSharedPtr<FCMTTextureFindResultMaterialData> Function(new FCMTTextureFindResultMaterialData());
@@ -823,7 +824,7 @@ void SCMTTextureFind::GetTextureForMaterialFunction(TArray<UTexture*>* OutputTex
 	{
 		return;
 	}
-	const TArray<UMaterialExpression*>& MaterialExpressions = TargetMaterial->FunctionExpressions;
+	const TConstArrayView<TObjectPtr<UMaterialExpression>>& MaterialExpressions = TargetMaterial->GetExpressions();
 	
 	for (int32 Index = 0 ; Index < MaterialExpressions.Num() ; ++Index)
 	{

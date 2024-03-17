@@ -22,6 +22,7 @@
 #include "Materials/MaterialFunction.h"
 #include "Materials/MaterialInstance.h"
 #include "Modules/ModuleManager.h"
+#include "MovieSceneBindingProxy.h"
 #include "MovieSceneFolder.h"
 #include "MovieSceneTrack.h"
 #include "PhysicsEngine/BodySetup.h"
@@ -513,9 +514,9 @@ void FCUTUtility::SelectSequencerEditorFolders(const TArray<const UMovieSceneFol
 	}
 	SelectSequencerEditorFolders(NewFolders);
 }
-void FCUTUtility::SelectSequencerEditorObjects(const TArray<FGuid>& InObjectBindings)
+void FCUTUtility::SelectSequencerEditorObjects(const TArray<FMovieSceneBindingProxy>& InObjectBindings)
 {
-	ULevelSequenceEditorBlueprintLibrary::SelectObjects(InObjectBindings);
+	ULevelSequenceEditorBlueprintLibrary::SelectBindings(InObjectBindings);
 }
 
 /** copy clipboard */

@@ -6,6 +6,7 @@
 
 #include "Containers/Array.h"
 #include "SlateFwd.h"
+#include "MovieSceneBindingProxy.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Widgets/SCompoundWidget.h"
 
@@ -13,6 +14,7 @@
 class ULevelSequence;
 class UMovieSceneFolder;
 class UMovieSceneTrack;
+struct FMovieSceneBindingProxy;
 
 /** find result type */
 enum class ECSTTrackSearcherResultType
@@ -34,7 +36,7 @@ public:
 	FCSTTrackSearcherResult(const FText& InDisplayText, ULevelSequence* InLevelSequence);
 	FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, ECSTTrackSearcherResultType InType, const FText& InOptionText=FText());
 	FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, const UMovieSceneFolder* InFolder, const FText& InOptionText=FText());
-	FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, const FGuid& InObjectGuid, const FText& InOptionText=FText());
+	FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, const FMovieSceneBindingProxy& InObjectBindingProxy, const FText& InOptionText=FText());
 	FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, const UMovieSceneTrack* InTrack, const FText& InOptionText=FText());
 	
 
@@ -74,7 +76,7 @@ private:
 	/** match Level Sequence*/
 	ULevelSequence* LevelSequence;
 	const UMovieSceneFolder* LevelSequenceFolder;
-	FGuid LevelSequenceObjectGuid;
+	FMovieSceneBindingProxy LevelSequenceBindingProxy;
 	const UMovieSceneTrack* LevelSequenceTrack;
 
 	/** result display */

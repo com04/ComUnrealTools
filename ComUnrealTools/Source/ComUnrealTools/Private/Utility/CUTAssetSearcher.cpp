@@ -3,7 +3,7 @@
 #include "CUTAssetSearcher.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 
 
 
@@ -44,7 +44,7 @@ void FCUTAssetSearcher::SearchStart(
 		
 		if (SearchAssetClass)
 		{
-			AssetRegistryModule.Get().GetAssetsByClass(SearchAssetClass->GetFName(), Data.AssetData);
+			AssetRegistryModule.Get().GetAssetsByClass(SearchAssetClass->GetClassPathName(), Data.AssetData);
 			TArray<FSoftObjectPath> AssetStream;
 			
 			CheckSearchPathContent(&Data.AssetData);
@@ -52,7 +52,7 @@ void FCUTAssetSearcher::SearchStart(
 			
 			for (auto ItAssetData = Data.AssetData.CreateConstIterator(); ItAssetData; ++ItAssetData)
 			{
-				FString AssetPathString = ItAssetData->ObjectPath.ToString();
+				FString AssetPathString = ItAssetData->GetObjectPathString();
 				
 				AssetStream.AddUnique(AssetPathString);
 			}
@@ -127,7 +127,7 @@ void FCUTAssetSearcher::CheckSearchPathContent(TArray<FAssetData>* InList)
 {
 	for (int32 ListIndex = 0 ; ListIndex < InList->Num() ; ++ListIndex)
 	{
-		FString AssetPathString = (*InList)[ListIndex].ObjectPath.ToString();
+		FString AssetPathString = (*InList)[ListIndex].GetObjectPathString();
 		if (!FCUTUtility::StringMatchesSearchTokens(SearchPathTokens, AssetPathString))
 		{
 			InList->RemoveAt(ListIndex);
@@ -146,7 +146,7 @@ void FCUTAssetSearcher::CheckSearchNameContent(TArray<FAssetData>* InList)
 {
 	for (int32 ListIndex = 0 ; ListIndex < InList->Num() ; ++ListIndex)
 	{
-		FString AssetPathString = (*InList)[ListIndex].ObjectPath.ToString();
+		FString AssetPathString = (*InList)[ListIndex].GetObjectPathString();
 		if (!FCUTUtility::StringMatchesSearchTokens(SearchNameTokens, AssetPathString))
 		{
 			InList->RemoveAt(ListIndex);

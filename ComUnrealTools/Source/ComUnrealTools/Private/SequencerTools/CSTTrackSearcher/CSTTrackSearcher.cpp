@@ -8,8 +8,8 @@
 #include "Utility/CUTAssetSearcher.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Texture.h"
 #include "LevelSequence.h"
 #include "MovieScene.h"
@@ -285,7 +285,7 @@ void SCSTTrackSearcher::FinishSearch()
 	const TArray<FAssetData>& LevelSequenceAsset = LevelSequenceSearcher.GetAssets(0);
 	for (const FAssetData& AssetData : LevelSequenceAsset)
 	{
-		FString AssetPathString = AssetData.ObjectPath.ToString();
+		FString AssetPathString = AssetData.GetObjectPathString();
 
 		ULevelSequence* LevelSequence = FindObject<ULevelSequence>(NULL, *AssetPathString);
 		if (LevelSequence == nullptr) continue;
@@ -303,24 +303,24 @@ void SCSTTrackSearcher::FinishSearch()
 			// |- トラック
 			
 			// フォルダ
-			const TArray<UMovieSceneFolder*>& Folders = MovieScene->GetRootFolders();
+			TArrayView<UMovieSceneFolder* const> Folders = MovieScene->GetRootFolders();
 			for (UMovieSceneFolder* Folder : Folders)
 			{
-				SearchMovieSceneFolder(MovieScene, Folder, RootSearchResult, FString(), FinishFindGuids);
+				SearchMovieSceneFolder(LevelSequence, MovieScene, Folder, RootSearchResult, FString(), FinishFindGuids);
 			}
 			
 			// トップに配置されたBP
 			const TArray<FMovieSceneBinding>& Bindings = MovieScene->GetBindings();
 			for (const FMovieSceneBinding& Binding : Bindings)
 			{
-				SearchMovieSceneBinding(MovieScene, &Binding, RootSearchResult, FString(), FinishFindGuids);
+				SearchMovieSceneBinding(LevelSequence, MovieScene, &Binding, RootSearchResult, FString(), FinishFindGuids);
 			}
 			
 			// トップに配置されたTrack
 			const TArray<UMovieSceneTrack*>& Tracks = MovieScene->GetMasterTracks();
 			for (UMovieSceneTrack* Track : Tracks)
 			{
-				SearchMovieSceneTrack(MovieScene, Track, RootSearchResult, FString(), FinishFindGuids);
+				SearchMovieSceneTrack(LevelSequence, MovieScene, Track, RootSearchResult, FString(), FinishFindGuids);
 			}
 
 			if (RootSearchResult->GetChildren().Num() > 0)
@@ -352,7 +352,7 @@ void SCSTTrackSearcher::FinishSearch()
 		TreeView->SetItemExpansion(Item, true);
 	}
 }
-void SCSTTrackSearcher::SearchMovieSceneFolder(UMovieScene* InMovieScene, const UMovieSceneFolder* InFolder, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids)
+void SCSTTrackSearcher::SearchMovieSceneFolder(ULevelSequence* InLevelSequence, UMovieScene* InMovieScene, const UMovieSceneFolder* InFolder, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids)
 {
 	if (!InFolder)
 	{
@@ -376,10 +376,10 @@ void SCSTTrackSearcher::SearchMovieSceneFolder(UMovieScene* InMovieScene, const 
 	const FString FolderParentName = FolderName + DirectorySeparateString;
 
 	// 子フォルダ
-	const TArray<UMovieSceneFolder*>& ChildFolders = InFolder->GetChildFolders();
+	TArrayView<UMovieSceneFolder* const> ChildFolders = InFolder->GetChildFolders();
 	for (UMovieSceneFolder* ChildFolder : ChildFolders)
 	{
-		SearchMovieSceneFolder(InMovieScene, ChildFolder, InParentResult, FolderParentName, OutFindGuids);
+		SearchMovieSceneFolder(InLevelSequence, InMovieScene, ChildFolder, InParentResult, FolderParentName, OutFindGuids);
 	}
 	
 	// フォルダ内のBP
@@ -389,7 +389,7 @@ void SCSTTrackSearcher::SearchMovieSceneFolder(UMovieScene* InMovieScene, const 
 		FMovieSceneBinding* ChildBinding = InMovieScene->FindBinding(ChildBindingGuid);
 		if (ChildBinding)
 		{
-			SearchMovieSceneBinding(InMovieScene, ChildBinding, InParentResult, FolderParentName, OutFindGuids);
+			SearchMovieSceneBinding(InLevelSequence, InMovieScene, ChildBinding, InParentResult, FolderParentName, OutFindGuids);
 		}
 	}
 	
@@ -397,10 +397,10 @@ void SCSTTrackSearcher::SearchMovieSceneFolder(UMovieScene* InMovieScene, const 
 	const TArray<UMovieSceneTrack*>& ChildTracks = InFolder->GetChildMasterTracks();
 	for (UMovieSceneTrack* ChildTrack : ChildTracks)
 	{
-		SearchMovieSceneTrack(InMovieScene, ChildTrack, InParentResult, FolderParentName, OutFindGuids);
+		SearchMovieSceneTrack(InLevelSequence, InMovieScene, ChildTrack, InParentResult, FolderParentName, OutFindGuids);
 	}
 }
-void SCSTTrackSearcher::SearchMovieSceneBinding(UMovieScene* InMovieScene, const FMovieSceneBinding* InBinding, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids)
+void SCSTTrackSearcher::SearchMovieSceneBinding(ULevelSequence* InLevelSequence, UMovieScene* InMovieScene, const FMovieSceneBinding* InBinding, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids)
 {
 	if (!InBinding)
 	{
@@ -466,7 +466,7 @@ void SCSTTrackSearcher::SearchMovieSceneBinding(UMovieScene* InMovieScene, const
 			// Track側に一致が有る or プロパティ側に一致が有る or このBP自体がマッチしているか
 			if ((FindTracks.Num() > 0) || (FindProperty.Num() > 0) || FCUTUtility::StringMatchesSearchTokens(SearchTokens, Name))
 			{
-				ObjectResult = MakeShareable(new FCSTTrackSearcherResult(FText::FromString(InParentString + Name), InParentResult, BindingGuid));
+				ObjectResult = MakeShareable(new FCSTTrackSearcherResult(FText::FromString(InParentString + Name), InParentResult, FMovieSceneBindingProxy(BindingGuid, InLevelSequence)));
 				InParentResult->AddChild(ObjectResult);
 				break;
 			}
@@ -487,7 +487,7 @@ void SCSTTrackSearcher::SearchMovieSceneBinding(UMovieScene* InMovieScene, const
 		ObjectResult->AddChild(NewResult);
 	}
 }
-void SCSTTrackSearcher::SearchMovieSceneTrack(UMovieScene* InMovieScene, const UMovieSceneTrack* InTrack, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids)
+void SCSTTrackSearcher::SearchMovieSceneTrack(ULevelSequence* InLevelSequence, UMovieScene* InMovieScene, const UMovieSceneTrack* InTrack, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids)
 {
 	if (!InTrack)
 	{

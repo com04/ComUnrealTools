@@ -8,7 +8,7 @@
 #include "UnrealTools/CUTDeveloperSettings.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
+#include "AssetRegistry/AssetData.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "Materials/MaterialParameterCollection.h"
 #include "Materials/MaterialParameterCollectionInstance.h"

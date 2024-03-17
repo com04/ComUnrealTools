@@ -14,6 +14,7 @@ class UMovieSceneFolder;
 class UMovieSceneTrack;
 class UTexture;
 class UWorld;
+struct FMovieSceneBindingProxy;
 
 
 /**
@@ -78,7 +79,7 @@ public:
 	static void SelectSequencerEditorTracks(const TArray<const UMovieSceneTrack*>& InTracks);
 	static void SelectSequencerEditorFolders(const TArray<UMovieSceneFolder*>& InFolders);
 	static void SelectSequencerEditorFolders(const TArray<const UMovieSceneFolder*>& InFolders);
-	static void SelectSequencerEditorObjects(const TArray<FGuid>& InObjectBindings);
+	static void SelectSequencerEditorObjects(const TArray<FMovieSceneBindingProxy>& InObjectBindings);
 
 
 

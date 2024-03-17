@@ -12,6 +12,7 @@
 #include "EditorStyleSet.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialInstance.h"
+#include "Styling/AppStyle.h"
 #include "Templates/SharedPointer.h"
 #include "Widgets/Layout/SExpandableArea.h"
 
@@ -83,7 +84,7 @@ void FCMTTextureFindResult::Construct(const FArguments& InArgs)
 				.AutoWidth()
 				[
 					SNew(SBorder)
-					.BorderImage(nullptr)
+					.BorderImage(FAppStyle::GetBrush("NoBorder"))
 					.Padding(FMargin(0))
 					[
 						SNew(SCMTTextureFindResultWidgetAssetPath)
@@ -113,7 +114,7 @@ void FCMTTextureFindResult::Construct(const FArguments& InArgs)
 					[
 						SNew(SBorder)
 						.Padding(4.0f)
-						.BorderImage(FEditorStyle::GetBrush("PropertyEditor.AssetThumbnailShadow"))
+						.BorderImage(FAppStyle::GetBrush("PropertyEditor.AssetTileItem.DropShadow"))
 						.OnMouseDoubleClick(this, &FCMTTextureFindResult::OnThumbnailMouseDoubleClick)
 						[
 							SNew(SBox)
@@ -122,7 +123,7 @@ void FCMTTextureFindResult::Construct(const FArguments& InArgs)
 							[
 								SNew(SBorder)
 								.Padding(1)
-								.BorderImage(FEditorStyle::GetBrush("AssetThumbnail", ".Border"))
+								.BorderImage(FAppStyle::GetBrush("NoBorder"))
 								.BorderBackgroundColor(FLinearColor::Black)
 								[
 									AssetThumbnail->MakeThumbnailWidget()

@@ -3,6 +3,7 @@
 #include "CVTVolumeRendererItemRow.h"
 #include "ComUnrealToolsStyle.h"
 
+#include "Styling/AppStyle.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Colors/SColorPicker.h"
 #include "Widgets/Text/STextBlock.h"
@@ -62,7 +63,7 @@ void SCVTVolumeRendererItemRow::Construct(const FArguments& InArgs, TSharedPtr<F
 				SNew(SComboButton)
 				.ContentPadding(0)
 				.HasDownArrow(false)
-				.ButtonStyle(FEditorStyle::Get(), "Sequencer.AnimationOutliner.ColorStrip")
+				.ButtonStyle(FAppStyle::Get(), "Sequencer.AnimationOutliner.ColorStrip")
 				.OnGetMenuContent(this, &SCVTVolumeRendererItemRow::CreateColorPicker)
 				.CollapseMenuOnParentFocus(true)
 				.ButtonContent()
@@ -70,7 +71,7 @@ void SCVTVolumeRendererItemRow::Construct(const FArguments& InArgs, TSharedPtr<F
 					SNew(SColorBlock)
 					.Color(this, &SCVTVolumeRendererItemRow::GetDisplayColor)
 					.ShowBackgroundForAlpha(true)
-					.IgnoreAlpha(false)
+					.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Combined)
 					.Size(FVector2D(32.0f, 32.0f))
 				]
 			]

@@ -17,6 +17,7 @@
 struct FAssetData;
 struct FMovieSceneBinding;
 class SButton;
+class ULevelSequence;
 class UMovieScene;
 class UMovieSceneFolder;
 class UMovieSceneTrack;
@@ -70,9 +71,9 @@ private:
 	/** search finish callback */
 	void FinishSearch();
 	
-	void SearchMovieSceneFolder(UMovieScene* InMovieScene, const UMovieSceneFolder* InFolder, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids);
-	void SearchMovieSceneBinding(UMovieScene* InMovieScene, const FMovieSceneBinding* InBinding, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids);
-	void SearchMovieSceneTrack(UMovieScene* InMovieScene, const UMovieSceneTrack* InTrack, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids);
+	void SearchMovieSceneFolder(ULevelSequence* InLevelSequence, UMovieScene* InMovieScene, const UMovieSceneFolder* InFolder, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids);
+	void SearchMovieSceneBinding(ULevelSequence* InLevelSequence, UMovieScene* InMovieScene, const FMovieSceneBinding* InBinding, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids);
+	void SearchMovieSceneTrack(ULevelSequence* InLevelSequence, UMovieScene* InMovieScene, const UMovieSceneTrack* InTrack, TSharedPtr<FCSTTrackSearcherResult> InParentResult, const FString& InParentString, TArray<FGuid>& OutFindGuids);
 	
 	
 	

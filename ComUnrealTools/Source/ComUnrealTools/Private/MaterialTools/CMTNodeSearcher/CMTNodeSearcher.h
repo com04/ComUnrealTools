@@ -59,12 +59,12 @@ private:
 	
 	/** search match MaterialExpressions */
 	bool MatchTokensFromAssets(const FAssetData& InAsset,
-			const TArray<UMaterialExpression*>& InExpressions, const TArray<UMaterialExpressionComment*>& InCommentExpressions, 
+			const TConstArrayView<UMaterialExpression*>& InExpressions, const TConstArrayView<TObjectPtr<UMaterialExpressionComment>>& InCommentExpressions, 
 			FCMTNodeSearcherResultShare InRoot);
 		
 	template<class ExpressionClass, class NameFunction>
 	void MatchTokensFromExpressions(
-			const TArray<ExpressionClass*>& InExpressions, FCMTNodeSearcherResultShare InRoot,
+			const TConstArrayView<ExpressionClass>& InExpressions, FCMTNodeSearcherResultShare InRoot,
 			FText InPrefix, NameFunction InFunctionGetName);
 	
 	

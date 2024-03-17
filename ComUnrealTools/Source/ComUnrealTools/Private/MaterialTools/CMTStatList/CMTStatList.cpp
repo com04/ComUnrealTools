@@ -7,8 +7,8 @@
 #include "ComUnrealToolsStyle.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Texture.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionComment.h"
@@ -318,7 +318,7 @@ void SCMTStatList::FinishSearch()
 	
 	for (auto It = MaterialAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterial* Material = FindObject<UMaterial>(NULL, *AssetPathString);
 		if (Material == nullptr) continue;
@@ -332,7 +332,7 @@ void SCMTStatList::FinishSearch()
 	
 	for (auto It = MaterialInstanceAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterialInstance* MaterialInstance = FindObject<UMaterialInstance>(NULL, *AssetPathString);
 		if (MaterialInstance == nullptr) return;

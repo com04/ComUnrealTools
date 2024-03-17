@@ -8,8 +8,8 @@
 #include "Utility/CUTAssetSearcher.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Texture.h"
 #include "LevelSequence.h"
 #include "MovieScene.h"
@@ -257,7 +257,7 @@ void SCOTPropertySearcher::FinishSearch()
 		const TArray<FAssetData>& Assets = AssetSearcher.GetAssets(AssetIndex);
 		for (const FAssetData& AssetData : Assets)
 		{
-			FString AssetPathString = AssetData.ObjectPath.ToString();
+			FString AssetPathString = AssetData.GetObjectPathString();
 
 			UObject* Object = FindObject<UObject>(NULL, *AssetPathString);
 			if (Object == nullptr) continue;

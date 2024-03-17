@@ -18,7 +18,7 @@ FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText)
 	: Parent(nullptr),
 	  LevelSequence(nullptr),
 	  LevelSequenceFolder(nullptr),
-	  LevelSequenceObjectGuid(),
+	  LevelSequenceBindingProxy(),
 	  LevelSequenceTrack(nullptr),
 	  DisplayText(InDisplayText),
 	  OptionText(),
@@ -30,7 +30,7 @@ FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText, ULe
 	: Parent(nullptr),
 	  LevelSequence(InLevelSequence),
 	  LevelSequenceFolder(nullptr),
-	  LevelSequenceObjectGuid(),
+	  LevelSequenceBindingProxy(),
 	  LevelSequenceTrack(nullptr),
 	  DisplayText(InDisplayText),
 	  OptionText(),
@@ -41,7 +41,7 @@ FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText, TSh
 	: Parent(InParent),
 	  LevelSequence(nullptr),
 	  LevelSequenceFolder(nullptr),
-	  LevelSequenceObjectGuid(),
+	  LevelSequenceBindingProxy(),
 	  LevelSequenceTrack(nullptr),
 	  DisplayText(InDisplayText),
 	  OptionText(InOptionText),
@@ -52,18 +52,18 @@ FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText, TSh
 	: Parent(InParent),
 	  LevelSequence(nullptr),
 	  LevelSequenceFolder(InFolder),
-	  LevelSequenceObjectGuid(),
+	  LevelSequenceBindingProxy(),
 	  LevelSequenceTrack(nullptr),
 	  DisplayText(InDisplayText),
 	  OptionText(InOptionText),
 	  Type(ECSTTrackSearcherResultType::Folder)
 {
 }
-FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, const FGuid& InObjectGuid, const FText& InOptionText)
+FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText, TSharedPtr<FCSTTrackSearcherResult> InParent, const FMovieSceneBindingProxy& InObjectBindingProxy, const FText& InOptionText)
 	: Parent(InParent),
 	  LevelSequence(nullptr),
 	  LevelSequenceFolder(nullptr),
-	  LevelSequenceObjectGuid(InObjectGuid),
+	  LevelSequenceBindingProxy(InObjectBindingProxy),
 	  LevelSequenceTrack(nullptr),
 	  DisplayText(InDisplayText),
 	  OptionText(InOptionText),
@@ -74,7 +74,7 @@ FCSTTrackSearcherResult::FCSTTrackSearcherResult(const FText& InDisplayText, TSh
 	: Parent(InParent),
 	  LevelSequence(nullptr),
 	  LevelSequenceFolder(nullptr),
-	  LevelSequenceObjectGuid(),
+	  LevelSequenceBindingProxy(),
 	  LevelSequenceTrack(InTrack),
 	  DisplayText(InDisplayText),
 	  OptionText(InOptionText),
@@ -119,9 +119,9 @@ void FCSTTrackSearcherResult::SelectLevelSequenceTrackTarget()
 		}
 		break;
 	case ECSTTrackSearcherResultType::Blueprint:
-		if (LevelSequenceObjectGuid.IsValid())
+		if (LevelSequenceBindingProxy.BindingID.IsValid())
 		{
-			FCUTUtility::SelectSequencerEditorObjects(TArray<FGuid>{LevelSequenceObjectGuid});
+			FCUTUtility::SelectSequencerEditorObjects(TArray<FMovieSceneBindingProxy>{LevelSequenceBindingProxy});
 		}
 		break;
 	case ECSTTrackSearcherResultType::Property:

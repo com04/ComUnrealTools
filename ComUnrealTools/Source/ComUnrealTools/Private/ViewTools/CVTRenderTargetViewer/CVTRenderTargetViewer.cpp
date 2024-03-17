@@ -7,7 +7,7 @@
 #include "ComUnrealToolsStyle.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
+#include "AssetRegistry/AssetData.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/Input/SButton.h"
@@ -188,7 +188,7 @@ void SCVTRenderTargetViewer::SearchRenderTargets()
 	// PIEでの再生中World
 	if (GEditor->PlayWorld)
 	{
-		const UEnum* FormatEnum = FindObject<UEnum>(ANY_PACKAGE, TEXT("ETextureRenderTargetFormat"));
+		const UEnum* FormatEnum = FindObject<UEnum>(nullptr, TEXT("/Script/Engine.ETextureRenderTargetFormat"));
 		for (TObjectIterator<UTextureRenderTarget2D> RenderTargetIt ; RenderTargetIt ; ++RenderTargetIt)
 		{
 			UTextureRenderTarget2D* RenderTaregt = *RenderTargetIt;

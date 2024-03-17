@@ -6,7 +6,7 @@
 #include "ComUnrealToolsStyle.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
+#include "AssetRegistry/AssetData.h"
 #include "Engine/Font.h"
 #include "Engine/Texture.h"
 #include "Materials/MaterialInstance.h"
@@ -255,16 +255,16 @@ FReply SCMTParameterDump::ButtonAssetCheckClicked()
 				}
 			}
 			const FStaticParameterSet& MaterialStaticParameter = MaterialInstance->GetStaticParameters();
-			StaticSwitchParameters.Reserve(MaterialStaticParameter.StaticSwitchParameters.Num());
-			for (const FStaticSwitchParameter& ParameterValue : MaterialStaticParameter.StaticSwitchParameters)
+			StaticSwitchParameters.Reserve(MaterialStaticParameter.EditorOnly.StaticSwitchParameters.Num());
+			for (const FStaticSwitchParameter& ParameterValue : MaterialStaticParameter.EditorOnly.StaticSwitchParameters)
 			{
 				if (ParameterValue.ExpressionGUID.IsValid())
 				{
 					StaticSwitchParameters.Add(ParameterValue.ParameterInfo);
 				}
 			}
-			StaticComponentMaskParameters.Reserve(MaterialStaticParameter.StaticComponentMaskParameters.Num());
-			for (const FStaticComponentMaskParameter& ParameterValue : MaterialStaticParameter.StaticComponentMaskParameters)
+			StaticComponentMaskParameters.Reserve(MaterialStaticParameter.EditorOnly.StaticComponentMaskParameters.Num());
+			for (const FStaticComponentMaskParameter& ParameterValue : MaterialStaticParameter.EditorOnly.StaticComponentMaskParameters)
 			{
 				if (ParameterValue.ExpressionGUID.IsValid())
 				{

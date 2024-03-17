@@ -7,8 +7,8 @@
 #include "UnrealTools/CUTDeveloperSettings.h"
 #include "Utility/CUTUtility.h"
 
-#include "AssetData.h"
-#include "AssetRegistryModule.h"
+#include "AssetRegistry/AssetData.h"
+#include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/Texture.h"
 #include "Materials/Material.h"
 #include "Materials/MaterialExpressionComment.h"
@@ -268,7 +268,7 @@ void SCMTNodeSearcher::FinishSearch()
 	
 	for (auto It = MaterialAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetSoftObjectPath().ToString();
 		
 		UMaterial* Material = FindObject<UMaterial>(NULL, *AssetPathString);
 		if (Material == nullptr) continue;
@@ -279,34 +279,32 @@ void SCMTNodeSearcher::FinishSearch()
 		
 		FCMTNodeSearcherResultShare RootSearchResult(new FCMTNodeSearcherResult(FText::FromName(It->PackageName), Material));
 		
-		MatchTokensFromAssets(*It, MaterialExpressions, Material->EditorComments, RootSearchResult);
+		MatchTokensFromAssets(*It, MaterialExpressions, Material->GetEditorComments(), RootSearchResult);
 				
 	}
 	
 	for (auto It = MaterialFunctionAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterialFunction* MaterialFunction = FindObject<UMaterialFunction>(NULL, *AssetPathString);
 		if (MaterialFunction == nullptr) continue;
 		
 		FCMTNodeSearcherResultShare RootSearchResult(new FCMTNodeSearcherResult(FText::FromName(It->PackageName), MaterialFunction));
 
-		MatchTokensFromAssets(*It, MaterialFunction->FunctionExpressions, MaterialFunction->FunctionEditorComments, RootSearchResult);
+		MatchTokensFromAssets(*It, MaterialFunction->GetExpressions(), MaterialFunction->GetEditorComments(), RootSearchResult);
 	}
 	
 	for (auto It = MaterialInstanceAsset.CreateConstIterator() ; It ; ++It)
 	{
-		FString AssetPathString = It->ObjectPath.ToString();
+		FString AssetPathString = It->GetObjectPathString();
 		
 		UMaterialInstance* MaterialInstance = FindObject<UMaterialInstance>(NULL, *AssetPathString);
 		if (MaterialInstance == nullptr) continue;
 		
 		FCMTNodeSearcherResultShare RootSearchResult(new FCMTNodeSearcherResult(FText::FromName(It->PackageName), MaterialInstance));
 
-		TArray<UMaterialExpression*> MaterialExpressions;
-		TArray<UMaterialExpressionComment*> MaterialExpressionComments;
-		bool bFind = MatchTokensFromAssets(*It, MaterialExpressions, MaterialExpressionComments, RootSearchResult);
+		bool bFind = MatchTokensFromAssets(*It, {}, {}, RootSearchResult);
 		bool bFindTexture = false;
 		for (auto ItTexture = MaterialInstance->TextureParameterValues.CreateConstIterator(); ItTexture; ++ItTexture)
 		{
@@ -353,7 +351,7 @@ void SCMTNodeSearcher::FinishSearch()
 }
 
 bool SCMTNodeSearcher::MatchTokensFromAssets(const FAssetData& InAsset,
-		const TArray<UMaterialExpression*>& InExpressions, const TArray<UMaterialExpressionComment*>& InCommentExpressions, 
+		const TConstArrayView<UMaterialExpression*>& InExpressions, const TConstArrayView<TObjectPtr<UMaterialExpressionComment>>& InCommentExpressions, 
 		FCMTNodeSearcherResultShare InRoot)
 {
 	auto FunctionGetExpressionName = [](UMaterialExpression* Expression){return FText::FromName(Expression->GetFName());};
@@ -382,12 +380,13 @@ bool SCMTNodeSearcher::MatchTokensFromAssets(const FAssetData& InAsset,
 }
 template<class ExpressionClass, class NameFunction>
 void SCMTNodeSearcher::MatchTokensFromExpressions(
-		const TArray<ExpressionClass*>& InExpressions, FCMTNodeSearcherResultShare InRoot,
+		const TConstArrayView<ExpressionClass>& InExpressions, FCMTNodeSearcherResultShare InRoot,
 		FText InPrefix, NameFunction InFunctionGetName)
 {
-	for (auto ItExpression = InExpressions.CreateConstIterator(); ItExpression; ++ItExpression)
+	for (auto InExpression : InExpressions)
 	{
-		const FText NodeName = InFunctionGetName(*ItExpression);
+		auto Expression = &(*InExpression);
+		const FText NodeName = InFunctionGetName(Expression);
 		FString NodeSearchString = NodeName.ToString();
 		
 		NodeSearchString = NodeSearchString.Replace(TEXT(" "), TEXT(""));
@@ -401,7 +400,7 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 			bool bMatchesAllTokens = true;
 			for (int32 Index = 0; Index < SearchTokens.Num(); ++Index)
 			{
-				if (!(*ItExpression)->MatchesSearchQuery(*SearchTokens[Index]))
+				if (!Expression->MatchesSearchQuery(*SearchTokens[Index]))
 				{
 					bMatchesAllTokens = false;
 					break;
@@ -417,7 +416,7 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 		if (!bNodeMatchesSearch)
 		{
 			TArray<FString> Caption;
-			(*ItExpression)->GetCaption(Caption);
+			Expression->GetCaption(Caption);
 			
 			for (auto ItCaption = Caption.CreateConstIterator(); ItCaption; ++ItCaption)
 			{
@@ -432,7 +431,7 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 		// Custom Node check
 		if (!bNodeMatchesSearch)
 		{
-			UMaterialExpressionCustom* ExpressionCustom = Cast<UMaterialExpressionCustom>(*ItExpression);
+			UMaterialExpressionCustom* ExpressionCustom = Cast<UMaterialExpressionCustom>(Expression);
 			if (ExpressionCustom)
 			{
 				if (FCUTUtility::StringMatchesSearchTokens(SearchTokens, ExpressionCustom->Code))
@@ -457,7 +456,7 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 			}
 			
 			// function call
-			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(*ItExpression);
+			UMaterialExpressionMaterialFunctionCall* FunctionCall = Cast<UMaterialExpressionMaterialFunctionCall>(Expression);
 			if (FunctionCall)
 			{
 				if (FunctionCall->MaterialFunction)
@@ -466,7 +465,7 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 				}
 			}
 			// texture sample
-			UMaterialExpressionTextureSample* TextureSample = Cast<UMaterialExpressionTextureSample>(*ItExpression);
+			UMaterialExpressionTextureSample* TextureSample = Cast<UMaterialExpressionTextureSample>(Expression);
 			if (TextureSample)
 			{
 				if (TextureSample->Texture)
@@ -476,7 +475,7 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 				}
 			}
 			
-			FCMTNodeSearcherResultShare ExpressionResult(new FCMTNodeSearcherResult(FText::FromString(DisplayString), InRoot, *ItExpression));
+			FCMTNodeSearcherResultShare ExpressionResult(new FCMTNodeSearcherResult(FText::FromString(DisplayString), InRoot, Expression));
 			InRoot->AddChild(ExpressionResult);
 		}
 	}
