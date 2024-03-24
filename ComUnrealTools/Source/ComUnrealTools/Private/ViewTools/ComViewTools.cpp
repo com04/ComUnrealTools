@@ -7,6 +7,7 @@
 #include "Components/ShapeComponent.h"
 #include "EngineUtils.h"
 #include "Engine/LocalPlayer.h"
+#include "GameFramework/Actor.h"
 #include "GameFramework/PlayerController.h"
 #include "PhysicsEngine/BodySetup.h"
 
@@ -55,11 +56,16 @@ static TAutoConsoleVariable<float> CVarCVTVolumeRenderSolidAlpha(
 
 static FAutoConsoleCommand CVarCVTVolumeRenderAddItem(
 		TEXT("CUT.VolumeRender.Add"),
-		TEXT("Add VolumeRender drawing. 'CUT.VolumeRender.Add <Always or OneShot> <Class=PartialMatchName> <Color=>'"),
+		TEXT("Add VolumeRender drawing. 'CUT.VolumeRender.Add <Class=PartialMatchName> <Always or OneShot> <Color=(0,0,0)>'\n")
+		TEXT("  require <Class=PartialMatchName>: Add matching class name.\n")
+		TEXT("  option <Always or OneShot>: Render time. Always render or Oneshot render.(default: Always).\n")
+		TEXT("  option <Color=(0,0,0)>: Render color.")
+		TEXT("  option <Name=PartialMatchName>: Render matching actor name."),
 		FConsoleCommandWithArgsDelegate::CreateLambda([](const TArray<FString>& Args)
 		{
 			bool bAlways = true;
 			FLinearColor Color(0.8f, 0.2f, 0.2f);
+			FString MatchActorName;
 			
 			for (const FString& Arg : Args)
 			{
@@ -106,6 +112,10 @@ static FAutoConsoleCommand CVarCVTVolumeRenderAddItem(
 						}
 					}
 				}
+				else if (Arg.StartsWith(TEXT("Name=")))
+				{
+					MatchActorName = Arg.Mid(5);
+				}
 			}
 			
 			for (const FString& Arg : Args)
@@ -113,7 +123,7 @@ static FAutoConsoleCommand CVarCVTVolumeRenderAddItem(
 				if (Arg.StartsWith(TEXT("Class=")))
 				{
 					FString ClassString = Arg.Mid(6);
-					FComViewTools::Get().AddVolumeRendererItemFromClassName(ClassString, bAlways, Color);
+					FComViewTools::Get().AddVolumeRendererItemFromClassName(ClassString, bAlways, Color, MatchActorName);
 				}
 			}
 		}));
@@ -222,24 +232,60 @@ TStatId FComViewTools::GetStatId() const
 }
 
 
-void FComViewTools::AddVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo)
+void FComViewTools::AddVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo, const FString& InMatchActorName)
 {
-	VolumeRendererItemsAlways.AddUnique(InInfo);
+	TArray<FString> MatchActorNames;
+	ParseMatchActorName(InMatchActorName, MatchActorNames);
+	AddVolumeRendererItemAlways(InInfo, MatchActorNames);
+}
+void FComViewTools::AddVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo, const TArray<FString>& InMatchActorNames)
+{
+	FCVTVolumeRendererItemInfo* FindInfo = VolumeRendererItemsAlways.FindByKey(InInfo);
+	if (FindInfo)
+	{
+		FindInfo->FilterActorNames = InMatchActorNames;
+	}
+	else
+	{
+		FCVTVolumeRendererItemInfo& NewInfo = VolumeRendererItemsAlways.Add_GetRef(InInfo);
+		NewInfo.FilterActorNames = InMatchActorNames;
+	}
 }
 void FComViewTools::RemoveVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo)
 {
 	VolumeRendererItemsAlways.RemoveSingle(InInfo);
 }
-void FComViewTools::AddVolumeRendererItemOneshot(const FCVTVolumeRendererItemInfo& InInfo)
+void FComViewTools::AddVolumeRendererItemOneshot(const FCVTVolumeRendererItemInfo& InInfo, const FString& InMatchActorName)
 {
-	VolumeRendererItemsOneshot.AddUnique(InInfo);
+	TArray<FString> MatchActorNames;
+	ParseMatchActorName(InMatchActorName, MatchActorNames);
+	AddVolumeRendererItemOneshot(InInfo, MatchActorNames);
+}
+void FComViewTools::AddVolumeRendererItemOneshot(const FCVTVolumeRendererItemInfo& InInfo, const TArray<FString>& InMatchActorNames)
+{
+	FCVTVolumeRendererItemInfo* FindInfo = VolumeRendererItemsOneshot.FindByKey(InInfo);
+	if (FindInfo)
+	{
+		FindInfo->FilterActorNames = InMatchActorNames;
+	}
+	else
+	{
+		FCVTVolumeRendererItemInfo& NewInfo = VolumeRendererItemsOneshot.Add_GetRef(InInfo);
+		NewInfo.FilterActorNames = InMatchActorNames;
+	}
 }
 void FComViewTools::RemoveVolumeRendererItemAll()
 {
 	VolumeRendererItemsAlways.Empty();
 	VolumeRendererItemsOneshot.Empty();
 }
-void FComViewTools::AddVolumeRendererItemFromClassName(const FString& InClassName, bool bInAlways, const FLinearColor& InColor)
+void FComViewTools::AddVolumeRendererItemFromClassName(const FString& InClassName, bool bInAlways, const FLinearColor& InColor, const FString& InMatchActorName)
+{
+	TArray<FString> MatchActorNames;
+	ParseMatchActorName(InMatchActorName, MatchActorNames);
+	AddVolumeRendererItemFromClassName(InClassName, bInAlways, InColor, MatchActorNames);
+}
+void FComViewTools::AddVolumeRendererItemFromClassName(const FString& InClassName, bool bInAlways, const FLinearColor& InColor, const TArray<FString>& InMatchActorNames)
 {
 	for (TObjectIterator<UClass> ClassIterator ; ClassIterator ; ++ClassIterator)
 	{
@@ -250,13 +296,14 @@ void FComViewTools::AddVolumeRendererItemFromClassName(const FString& InClassNam
 		FCVTVolumeRendererItemInfo NewInfo;
 		NewInfo.Class = *ClassIterator;
 		NewInfo.DisplayColor = InColor;
+		NewInfo.FilterActorNames = InMatchActorNames;
 		if (bInAlways)
 		{
-			AddVolumeRendererItemAlways(NewInfo);
+			AddVolumeRendererItemAlways(NewInfo, InMatchActorNames);
 		}
 		else
 		{
-			AddVolumeRendererItemOneshot(NewInfo);
+			AddVolumeRendererItemOneshot(NewInfo, InMatchActorNames);
 		}
 		UE_LOG(LogComUnrealTools, Log, TEXT("VolumeRenderer added class %s"), *ClassIterator->GetName());
 	}
@@ -324,6 +371,11 @@ void FComViewTools::RemoveOnChangedParametersDelegate(FDelegateHandle InDelegate
 	OnChangedParameters.Remove(InDelegateHandle);
 }
 
+void FComViewTools::ParseMatchActorName(const FString& InMatchActorName, TArray<FString>& OutMatchActorNames)
+{
+	InMatchActorName.ParseIntoArray(OutMatchActorNames, TEXT("|"));
+}
+
 void FComViewTools::RenderItem(UWorld* InWorld, const FCVTVolumeRendererItemInfo& InInfo, float InDuration) const
 {
 	if (!InInfo.Class)
@@ -336,18 +388,23 @@ void FComViewTools::RenderItem(UWorld* InWorld, const FCVTVolumeRendererItemInfo
 	for(TActorIterator<AActor> ActorIt(InWorld, InInfo.Class) ; ActorIt ; ++ActorIt)
 	{
 		AActor* TargetActor = *ActorIt;
-		struct FGeomtryInfo
+		// Actor名マッチ
+		if (InInfo.FilterActorNames.Num() > 0)
 		{
-			const UBodySetup* BodySetup = nullptr;
-			FTransform Transform = FTransform::Identity;
-			
-			FGeomtryInfo(const UBodySetup* InBodySetup, const FTransform& InTransform)
-			: BodySetup(InBodySetup),
-			  Transform(InTransform)
-			{}
-		};
-		TArray<FGeomtryInfo, TInlineAllocator<32>> GeometryInfos;
-		
+			bool bMatch = false;
+			for (const FString& FilterActorName : InInfo.FilterActorNames)
+			{
+				if (TargetActor->GetActorNameOrLabel().Contains(FilterActorName))
+				{
+					bMatch = true;
+					break;
+				}
+			}
+			if (!bMatch)
+			{
+				continue;
+			}
+		}
 		// 距離カリング
 		if (VolumeRendererRenderDistance > 0.01f)
 		{
@@ -403,6 +460,18 @@ void FComViewTools::RenderItem(UWorld* InWorld, const FCVTVolumeRendererItemInfo
 		}
 		
 		// BodySetup を取得
+		struct FGeomtryInfo
+		{
+			const UBodySetup* BodySetup = nullptr;
+			FTransform Transform = FTransform::Identity;
+			
+			FGeomtryInfo(const UBodySetup* InBodySetup, const FTransform& InTransform)
+			: BodySetup(InBodySetup),
+			  Transform(InTransform)
+			{}
+		};
+		TArray<FGeomtryInfo, TInlineAllocator<32>> GeometryInfos;
+		
 		{
 			// Volume等のBrush系
 			TArray<UBrushComponent*, TInlineAllocator<16>> BurshComps;

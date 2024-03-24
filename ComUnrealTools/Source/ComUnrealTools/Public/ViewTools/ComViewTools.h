@@ -18,10 +18,14 @@ struct COMUNREALTOOLS_API FCVTVolumeRendererItemInfo
 	TSubclassOf<AActor> Class;
 	UPROPERTY(EditAnywhere)
 	FLinearColor DisplayColor;
+	/// render any match
+	UPROPERTY(EditAnywhere)
+	TArray<FString> FilterActorNames;
 
 	FCVTVolumeRendererItemInfo()
 	: Class(),
-	  DisplayColor(FLinearColor::White)
+	  DisplayColor(FLinearColor::White),
+	  FilterActorNames()
 	{}
 	
 	bool operator==(const FCVTVolumeRendererItemInfo& Value) const
@@ -49,12 +53,15 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual TStatId GetStatId() const override;
 	
-	void AddVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo);
+	void AddVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo, const FString& InMatchActorName);
+	void AddVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo, const TArray<FString>& InMatchActorNames);
 	void RemoveVolumeRendererItemAlways(const FCVTVolumeRendererItemInfo& InInfo);
-	void AddVolumeRendererItemOneshot(const FCVTVolumeRendererItemInfo& InInfo);
+	void AddVolumeRendererItemOneshot(const FCVTVolumeRendererItemInfo& InInfo, const FString& InMatchActorName);
+	void AddVolumeRendererItemOneshot(const FCVTVolumeRendererItemInfo& InInfo, const TArray<FString>& InMatchActorNames);
 	void RemoveVolumeRendererItemAll();
 
-	void AddVolumeRendererItemFromClassName(const FString& InClassName, bool bInAlways, const FLinearColor& InColor);
+	void AddVolumeRendererItemFromClassName(const FString& InClassName, bool bInAlways, const FLinearColor& InColor, const FString& InMatchActorName);
+	void AddVolumeRendererItemFromClassName(const FString& InClassName, bool bInAlways, const FLinearColor& InColor, const TArray<FString>& InMatchActorNames);
 	void RemoveVolumeRendererItemFromClassName(const FString& InClassName);
 	
 	void SetVolumeRendererLineThickness(float InValue);
@@ -74,6 +81,7 @@ public:
 	
 private:
 	static FComViewTools* GetInstance(bool bInCreate);
+	void ParseMatchActorName(const FString& InMatchActorName, TArray<FString>& OutMatchActorNames);
 	void RenderItem(class UWorld* InWorld, const FCVTVolumeRendererItemInfo& InInfo, float InDuration) const;
 
 private:

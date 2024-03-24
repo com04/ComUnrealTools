@@ -26,6 +26,7 @@
 
 ////////////////////////////////////
 // SCVTVolumeRenderer
+FString SCVTVolumeRenderer::MatchActorName;
 TArray<FCVTVolumeRendererItemInfo> SCVTVolumeRenderer::ItemInfos;
 const TArray<FLinearColor> SCVTVolumeRenderer::DefaultColorList =
 {
@@ -126,6 +127,29 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 			]
 
 			// option
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			.Padding(10.0f, 10.0f, 0.0f, 0.0f)
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(LOCTEXT("ActorName", "Match Actor Name: "))
+				]
+				
+				+ SHorizontalBox::Slot()
+				.FillWidth(0.5f)
+				[
+					SNew(SSearchBox)
+					.HintText(LOCTEXT("Find", "Enter actor name..."))
+					.InitialText(FText::FromString(MatchActorName))
+					.OnTextCommitted(this, &SCVTVolumeRenderer::OnMatchActorNameCommitted)
+				]
+			]
+			
 			+ SVerticalBox::Slot()
 			.AutoHeight()
 			.Padding(10.0f, 10.0f, 0.0f, 0.0f)
@@ -384,7 +408,7 @@ void SCVTVolumeRenderer::OnChangedAlways(TSharedPtr<FCVTVolumeRendererItem> Item
 	}
 	if (Item->IsAlways())
 	{
-		FComViewTools::Get().AddVolumeRendererItemAlways(Item->GetInfo());
+		FComViewTools::Get().AddVolumeRendererItemAlways(Item->GetInfo(), MatchActorName);
 	}
 	else
 	{
@@ -398,7 +422,7 @@ void SCVTVolumeRenderer::OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item)
 	{
 		return;
 	}
-	FComViewTools::Get().AddVolumeRendererItemOneshot(Item->GetInfo());
+	FComViewTools::Get().AddVolumeRendererItemOneshot(Item->GetInfo(), MatchActorName);
 }
 // Removeが押された時のコールバック
 void SCVTVolumeRenderer::OnRemove(TSharedPtr<FCVTVolumeRendererItem> Item)
@@ -412,6 +436,10 @@ void SCVTVolumeRenderer::OnRemove(TSharedPtr<FCVTVolumeRendererItem> Item)
 		return;
 	}
 	FComViewTools::Get().RemoveVolumeRendererItemAlways(Item->GetInfo());
+}
+void SCVTVolumeRenderer::OnMatchActorNameCommitted(const FText& Text, ETextCommit::Type CommitType)
+{
+	MatchActorName = Text.ToString();
 }
 
 // 既に登録しているクラスか

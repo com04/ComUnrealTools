@@ -79,6 +79,8 @@ protected:
 	// Removeが押された時のコールバック
 	void OnRemove(TSharedPtr<FCVTVolumeRendererItem> Item);
 	
+	// Actor名テキスト更新コールバック
+	void OnMatchActorNameCommitted(const FText& Text, ETextCommit::Type CommitType);
 	// 既に登録しているクラスか
 	static bool FindClassInItemInfos(const TArray<FCVTVolumeRendererItemInfo>& InItemInfos, TSubclassOf<AActor> InClass);
 private:
@@ -105,6 +107,7 @@ private:
 	// 表示距離
 	CUT_DEVSETTINGS_FLOAT(RenderDistance, CVTVolumeRendererRenderDistance);
 
+	static FString MatchActorName;
 	static TArray<FCVTVolumeRendererItemInfo> ItemInfos;
 	static const TArray<FLinearColor> DefaultColorList;
 
