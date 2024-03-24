@@ -47,8 +47,6 @@ public:
 
 	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 public:
-	/** エディタの環境設定での値変更時のコールバック */
-	static void OnChangedEditorSettings(UCUTDeveloperSettings* Settings, FPropertyChangedEvent& Property);
 	/** エディタ終了時の現在環境の保存 */
 	static void OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings);
 

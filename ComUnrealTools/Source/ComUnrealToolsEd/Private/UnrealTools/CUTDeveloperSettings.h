@@ -37,7 +37,7 @@
 
 
 
-
+DECLARE_MULTICAST_DELEGATE(FCUTOnChangedDeveloperSettings);
 
 
 /**
@@ -49,6 +49,7 @@ class UCUTDeveloperSettings : public UDeveloperSettings
 	GENERATED_BODY()
 public:
 	UCUTDeveloperSettings();
+	~UCUTDeveloperSettings();
 
 	/*
 	 * savedには保存するけどEditorSettingsに要らない→configのみ
@@ -204,6 +205,11 @@ public:
 	/** パラメーターを初期化する */
 	void InitialzieCachedParameter();
 
+	virtual void PostInitProperties() override;
+
+	/** パラメーター変更時のDelegate登録 */
+	FDelegateHandle AddOnChangedDelegate(FCUTOnChangedDeveloperSettings::FDelegate InDelegate);
+	void RemoveOnChangedDelegate(FDelegateHandle InDelegateHandle);
 public:
 	static const UCUTDeveloperSettings* Get();
 	static UCUTDeveloperSettings* GetWritable();
@@ -212,5 +218,16 @@ public:
 protected:
 	/** 値変更時のコールバック */
 	void OnPropertySettingChanged(UObject* Object, struct FPropertyChangedEvent& Property);
+	void OnPropertySettingChanged();
+	/** 外部側で値が変更された時のコールバック */
+	void OnExternalPropertySettingChanged();
 
+private:
+	/** プロパティ変更中 */
+	bool bPropertyChange;
+
+	/** パラメーター変更時のコールバック */
+	FCUTOnChangedDeveloperSettings OnChangedDelegate;
+	/** ViewTools側でのパラメーター変更時のコールバック受取ハンドル */
+	FDelegateHandle ViewToolsOnChangedDelegateHandle;
 };

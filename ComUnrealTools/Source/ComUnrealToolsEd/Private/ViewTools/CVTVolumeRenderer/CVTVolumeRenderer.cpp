@@ -17,6 +17,7 @@
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Views/STableViewBase.h"
+#include "Widgets/Views/STileView.h"
 
 #define LOCTEXT_NAMESPACE "CVTVolumeRenderer"
 
@@ -41,10 +42,20 @@ bool SCVTVolumeRenderer::bDirtyEditorSettings = true;
 
 SCVTVolumeRenderer::~SCVTVolumeRenderer()
 {
+	if (OnChangedEditorSettingsHandle.IsValid())
+	{
+		UCUTDeveloperSettings* Settings = UCUTDeveloperSettings::GetWritable();
+		if (Settings)
+		{
+			Settings->RemoveOnChangedDelegate(OnChangedEditorSettingsHandle);
+			OnChangedEditorSettingsHandle.Reset();
+		}
+	}
 }
 
 void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 {
+	bExternalOnChanged = false;
 	ChildSlot
 	[
 		SNew(SBorder)
@@ -133,7 +144,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
-					SNew(SSpinBox<float>)
+					SAssignNew(SpinBoxLineThickness, SSpinBox<float>)
 					.Value(GetLineThickness())
 					.MinValue(0.0f)
 					.MaxSliderValue(100)
@@ -155,7 +166,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
-					SNew(SSpinBox<float>)
+					SAssignNew(SpinBoxOneShotDuration, SSpinBox<float>)
 					.Value(GetOneShotDuration())
 					.MinValue(0.0f)
 					.MaxSliderValue(30.0f)
@@ -177,7 +188,7 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 				.VAlign(VAlign_Center)
 				.Padding(10.0f, 0.0f, 0.0f, 0.0f)
 				[
-					SNew(SSpinBox<float>)
+					SAssignNew(SpinBoxRenderDistance, SSpinBox<float>)
 					.Value(GetRenderDistance())
 					.MinValue(0.0f)
 					.MaxSliderValue(100000.0f)
@@ -238,45 +249,22 @@ void SCVTVolumeRenderer::Construct(const FArguments& InArgs)
 	}
 	
 	ItemTileView->RequestListRefresh();
-}
-void SCVTVolumeRenderer::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
-{
-	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
-	
-	UWorld* World = GWorld;
-	// PIEでの再生中World
-	if (GEditor && GEditor->PlayWorld)
-	{
-		World = GEditor->PlayWorld;
-	}
-	// Todo: Standalone再生中のWorldが取れない...
 
-	if (World)
+	// 外部でのパラメーター変更似合わせてUIを更新する
+	UCUTDeveloperSettings* Settings = UCUTDeveloperSettings::GetWritable();
+	if (Settings)
 	{
-		for (TSharedPtr<FCVTVolumeRendererItem>& Item : RequestOneShotItems)
-		{
-			RenderItem(World, Item, GetOneShotDuration());
-		}
-		RequestOneShotItems.Empty();
-		for (TArray<TSharedPtr<FCVTVolumeRendererItem>>::TIterator ItemIt(RequestAlwaysItems) ; ItemIt ; ++ItemIt)
-		{
-			RenderItem(World, *ItemIt, 0.0f);
-			if (!(*ItemIt)->IsAlways())
-			{
-				ItemIt.RemoveCurrent();
-			}
-		}
+		OnChangedEditorSettingsHandle = Settings->AddOnChangedDelegate(FCUTOnChangedDeveloperSettings::FDelegate::CreateLambda([this]()
+				{
+					bExternalOnChanged = true;
+					SpinBoxLineThickness->SetValue(GetLineThickness());
+					SpinBoxOneShotDuration->SetValue(GetOneShotDuration());
+					SpinBoxRenderDistance->SetValue(GetRenderDistance());
+					bExternalOnChanged = false;
+				}));
 	}
 }
 
-void SCVTVolumeRenderer::OnChangedEditorSettings(UCUTDeveloperSettings* Settings, FPropertyChangedEvent& Property)
-{
-	if (!IsValid(Settings))
-	{
-		return;
-	}
-	// const FName PropertyName = Property.GetPropertyName();
-}
 /** エディタ終了時の現在環境の保存 */
 void SCVTVolumeRenderer::OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings)
 {
@@ -308,15 +296,27 @@ void SCVTVolumeRenderer::OnSetClass(const UClass* InClass)
 // Spin Box  --------
 void SCVTVolumeRenderer::OnSpinBoxLineThicknessChanged(float InValue)
 {
-	SetLineThickness(InValue);
+	if (bExternalOnChanged)
+	{
+		return;
+	}
+	FComViewTools::Get().SetVolumeRendererLineThickness(InValue);
 }
 void SCVTVolumeRenderer::OnSpinBoxOneShotDurationChanged(float InValue)
 {
-	SetOneShotDuration(InValue);
+	if (bExternalOnChanged)
+	{
+		return;
+	}
+	FComViewTools::Get().SetVolumeRendererOneShotDuration(InValue);
 }
 void SCVTVolumeRenderer::OnSpinBoxRenderDistanceChanged(float InValue)
 {
-	SetRenderDistance(InValue);
+	if (bExternalOnChanged)
+	{
+		return;
+	}
+	FComViewTools::Get().SetVolumeRendererRenderDistance(InValue);
 }
 // -------- Spin Box
 
@@ -347,8 +347,7 @@ FReply SCVTVolumeRenderer::ButtonClassAddClicked()
 FReply SCVTVolumeRenderer::ButtonClearItemsClicked()
 {
 	ItemInfos.Empty();
-	RequestAlwaysItems.Empty();
-	RequestOneShotItems.Empty();
+	FComViewTools::Get().RemoveVolumeRendererItemAll();
 	Items.Empty();
 	ItemTileView->RequestListRefresh();
 	return FReply::Handled();
@@ -365,8 +364,8 @@ void SCVTVolumeRenderer::AddItem(const FCVTVolumeRendererItemInfo& InInfo)
 {
 	TSharedPtr<FCVTVolumeRendererItem> NewItem = MakeShareable(new FCVTVolumeRendererItem(InInfo));
 	// コールバック登録
-	NewItem->OnAlwaysON = [this](TSharedPtr<FCVTVolumeRendererItem> InItem) {
-		this->OnAlwaysON(InItem);
+	NewItem->OnChangedAlways = [this](TSharedPtr<FCVTVolumeRendererItem> InItem) {
+		this->OnChangedAlways(InItem);
 	};
 	NewItem->OnOneShot = [this](TSharedPtr<FCVTVolumeRendererItem> InItem) {
 		this->OnOneShot(InItem);
@@ -376,99 +375,43 @@ void SCVTVolumeRenderer::AddItem(const FCVTVolumeRendererItemInfo& InInfo)
 	};
 	Items.Add(NewItem);
 }
-// アイテム一つの描画
-void SCVTVolumeRenderer::RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRendererItem> InItem, float InDuration)
+// AlwaysがONに設定された時のコールバック
+void SCVTVolumeRenderer::OnChangedAlways(TSharedPtr<FCVTVolumeRendererItem> Item)
 {
-	const FCVTVolumeRendererItemInfo& Info = InItem->GetInfo();
-	if (!Info.Class)
+	if (!Item.IsValid())
 	{
 		return;
 	}
-	
-	const FColor LineColor = Info.DisplayColor.ToFColor(true);
-	const FColor SolidColor = FColor(LineColor.R, LineColor.G, LineColor.B, 255 * UCUTDeveloperSettings::Get()->CVTVolumeRendererSolidAlpha);
-	for(TActorIterator<AActor> ActorIt(InWorld, Info.Class) ; ActorIt ; ++ActorIt)
+	if (Item->IsAlways())
 	{
-		AActor* TargetActor = *ActorIt;
-		struct FGeomtryInfo
-		{
-			const UBodySetup* BodySetup = nullptr;
-			FTransform Transform = FTransform::Identity;
-			
-			FGeomtryInfo(const UBodySetup* InBodySetup, const FTransform& InTransform)
-			: BodySetup(InBodySetup),
-			  Transform(InTransform)
-			{}
-		};
-		TArray<FGeomtryInfo, TInlineAllocator<32>> GeometryInfos;
-		
-		// 距離カリング
-		if ((GetRenderDistance() > 0.01f) && (InWorld->ViewLocationsRenderedLastFrame.Num() > 0))
-		{
-			const FVector ActorLocation = TargetActor->GetActorLocation();
-			bool bCulling = true;
-			for (const FVector& ViewLocation : InWorld->ViewLocationsRenderedLastFrame)
-			{
-				if (FVector::Distance(ActorLocation, ViewLocation) <= GetRenderDistance())
-				{
-					bCulling = false;
-					break;
-				}
-			}
-			if (bCulling)
-			{
-				continue;
-			}
-		}
-		
-		// BodySetup を取得
-		{
-			// Volume等のBrush系
-			TArray<UBrushComponent*, TInlineAllocator<16>> BurshComps;
-			TargetActor->GetComponents(BurshComps);
-			for (UBrushComponent* BrushComp : BurshComps)
-			{
-				if (BrushComp->BrushBodySetup)
-				{
-					GeometryInfos.Add(FGeomtryInfo(BrushComp->BrushBodySetup, BrushComp->GetComponentTransform()));
-				}
-			}
-			// Box/Sphere/CapsuleCollision系
-			TArray<UShapeComponent*, TInlineAllocator<16>> ShapeComps;
-			TargetActor->GetComponents(ShapeComps);
-			for (UShapeComponent* ShapeComp : ShapeComps)
-			{
-				if (ShapeComp->ShapeBodySetup)
-				{
-					GeometryInfos.Add(FGeomtryInfo(ShapeComp->ShapeBodySetup, ShapeComp->GetComponentTransform()));
-				}
-			}
-		}
-		for (const FGeomtryInfo& GeometryInfo : GeometryInfos)
-		{
-			FCUTUtility::DrawBodySetup(InWorld, GeometryInfo.BodySetup, GeometryInfo.Transform, LineColor, SolidColor, InDuration, GetLineThickness());
-		}
+		FComViewTools::Get().AddVolumeRendererItemAlways(Item->GetInfo());
 	}
-}
-
-// AlwaysがONに設定された時のコールバック
-void SCVTVolumeRenderer::OnAlwaysON(TSharedPtr<FCVTVolumeRendererItem> Item)
-{
-	RequestAlwaysItems.AddUnique(Item);
+	else
+	{
+		FComViewTools::Get().RemoveVolumeRendererItemAlways(Item->GetInfo());
+	}
 }
 // OneShotが押された時のコールバック
 void SCVTVolumeRenderer::OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item)
 {
-	RequestOneShotItems.AddUnique(Item);
+	if (!Item.IsValid())
+	{
+		return;
+	}
+	FComViewTools::Get().AddVolumeRendererItemOneshot(Item->GetInfo());
 }
 // Removeが押された時のコールバック
 void SCVTVolumeRenderer::OnRemove(TSharedPtr<FCVTVolumeRendererItem> Item)
 {
 	ItemInfos.RemoveSingle(Item->GetInfo());
-	RequestAlwaysItems.RemoveSingle(Item);
-	RequestOneShotItems.RemoveSingle(Item);
 	Items.RemoveSingle(Item);
 	ItemTileView->RequestListRefresh();
+	
+	if (!Item.IsValid())
+	{
+		return;
+	}
+	FComViewTools::Get().RemoveVolumeRendererItemAlways(Item->GetInfo());
 }
 
 // 既に登録しているクラスか

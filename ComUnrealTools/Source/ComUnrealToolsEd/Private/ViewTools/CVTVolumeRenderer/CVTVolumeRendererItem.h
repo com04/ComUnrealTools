@@ -3,31 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CVTVolumeRendererItem.generated.h"
+#include "ViewTools/ComViewTools.h"
 
-/**
- * SCVTVolumeRenderer Item
- */
-USTRUCT()
-struct FCVTVolumeRendererItemInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<AActor> Class;
-	UPROPERTY(EditAnywhere)
-	FLinearColor DisplayColor;
-
-	FCVTVolumeRendererItemInfo()
-	: Class(),
-	  DisplayColor(FLinearColor::White)
-	{}
-	
-	bool operator==(const FCVTVolumeRendererItemInfo& Value) const
-	{
-		return (Class == Value.Class) && (DisplayColor == Value.DisplayColor);
-	}
-};
 
 /* added item */
 class FCVTVolumeRendererItem : public TSharedFromThis<FCVTVolumeRendererItem>
@@ -46,7 +23,7 @@ public:
 
 	void SetAlways(bool bInAlways) { bAlways = bInAlways; }
 	bool IsAlways() const { return bAlways; }
-	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnAlwaysON;
+	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnChangedAlways;
 	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnOneShot;
 	TFunction<void(TSharedPtr<FCVTVolumeRendererItem>)> OnRemove;
 private:

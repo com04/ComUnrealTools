@@ -113,15 +113,6 @@ void SCVTMPCViewerWatch::Construct(const FArguments& InArgs)
 	ResultView->RebuildList();
 }
 
-/** エディタの環境設定での値変更時のコールバック */
-void SCVTMPCViewerWatch::OnChangedEditorSettings(UCUTDeveloperSettings* Settings, FPropertyChangedEvent& Property)
-{
-	if (!IsValid(Settings))
-	{
-		return;
-	}
-	// const FName PropertyName = Property.GetPropertyName();
-}
 /** エディタ終了時の現在環境の保存 */
 void SCVTMPCViewerWatch::OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings)
 {

@@ -27,6 +27,11 @@
 			"WhitelistPlatforms": [
 				"Win64"
 			]
+		},
+		{
+			"Name": "ComUnrealTools",
+			"Type": "EditorNoCommandlet",
+			"LoadingPhase": "Default"
 		}
 	]
 }

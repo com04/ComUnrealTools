@@ -15,7 +15,6 @@ public class ComUnrealToolsEd : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				"ComUnrealToolsEd/Private",
-				// ... add other private include paths required here ...
 			}
 			);
 		string EnginePath = Path.GetFullPath(Target.RelativeEnginePath);
@@ -27,7 +26,6 @@ public class ComUnrealToolsEd : ModuleRules
 			{
 				"Core",
 				"ApplicationCore",
-				// ... add other public dependencies that you statically link with here ...
 			}
 			);
 			
@@ -55,7 +53,7 @@ public class ComUnrealToolsEd : ModuleRules
 				"LevelSequence",
 				"MovieScene",
 				"LevelSequenceEditor",
-				// ... add private dependencies that you statically link with here ...	
+				"ComUnrealTools",
 			}
 			);
 		
@@ -63,7 +61,6 @@ public class ComUnrealToolsEd : ModuleRules
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{
-				// ... add any modules that your module loads dynamically here ...
 			}
 			);
 	}

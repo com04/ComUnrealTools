@@ -161,7 +161,7 @@ void FCUTUtility::SearchPropertyInternal(const FPropertyObject& InObject, const 
 	FString DisplayNameText = InProperty->GetDisplayNameText().ToString();
 	if (UCUTDeveloperSettings::Get()->bUseDebugOutputNameInPropertySearch)
 	{
-		UE_LOG(LogTemp, Log, TEXT("SearchProperty ID=%s Name=%s DisplayName=%s"), *ID.ToString(), *NamePrivate, *DisplayNameText);
+		UE_LOG(LogComUnrealTools, Log, TEXT("SearchProperty ID=%s Name=%s DisplayName=%s"), *ID.ToString(), *NamePrivate, *DisplayNameText);
 	}
 	
 	// パラメーター文字列が名前とマッチングするか
@@ -174,7 +174,7 @@ void FCUTUtility::SearchPropertyInternal(const FPropertyObject& InObject, const 
 		{
 			FString DisplayNameString = FString::Printf(TEXT("%s%s"), *ParentString, *DisplayNameBase);
 			FString PrivateNameString = FString::Printf(TEXT("%s%s"), *ParentString, *PrivateNameBase);
-			// UE_LOG(LogTemp, Log, TEXT("    Check %s : %s / %s"), *DebugName, *DisplayNameString, *PrivateNameString);
+			// UE_LOG(LogComUnrealTools, Log, TEXT("    Check %s : %s / %s"), *DebugName, *DisplayNameString, *PrivateNameString);
 			if (InSearchDisplayName && FCUTUtility::StringMatchesSearchTokens(LocalSearchStrings, DisplayNameString))
 			{
 				InFunction(*InProperty, DisplayNameString);
@@ -727,7 +727,7 @@ void FCUTUtility::DrawBodySetup(UWorld* World, const UBodySetup* BodySetup, cons
 	const bool bDrawSolid = (SolidColor.A > 0.0f);
 	
 	/*
-	UE_LOG(LogTemp, Log, TEXT("VolumeRenderer %s Sphere=%d Box=%d Sphyl=%d Convex=%d Tapered=%d"),
+	UE_LOG(LogComUnrealTools, Log, TEXT("VolumeRenderer %s Sphere=%d Box=%d Sphyl=%d Convex=%d Tapered=%d"),
 			*TargetActor->GetName(),
 			AggGeom.SphereElems.Num(), AggGeom.BoxElems.Num(), AggGeom.SphylElems.Num(), AggGeom.ConvexElems.Num(), AggGeom.TaperedCapsuleElems.Num());
 	*/

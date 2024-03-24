@@ -1,7 +1,6 @@
 ﻿// Copyright com04 All Rights Reserved.
 
 #include "CUTDeveloperSettings.h"
-#include "ViewTools/CVTVolumeRenderer/CVTVolumeRenderer.h"
 #include "ViewTools/CVTMPCViewerWatch/CVTMPCViewerWatch.h"
 
 
@@ -13,11 +12,25 @@ UCUTDeveloperSettings::UCUTDeveloperSettings()
   bUseSavedCache(true),
   bUseDisplayNameInPropertySearch(true),
   bUseDebugOutputNameInPropertySearch(false),
-  CVTVolumeRendererSolidAlpha(0.5f)
+  CVTVolumeRendererSolidAlpha(0.5f),
+  bPropertyChange(false)
 {
 	InitialzieCachedParameter();
 	OnSettingChanged().AddUObject(this, &UCUTDeveloperSettings::OnPropertySettingChanged);
+
+	// FComViewTools 内で変更されたパラメーターを受け取る
+	ViewToolsOnChangedDelegateHandle = FComViewTools::Get().AddOnChangedParametersDelegate(
+			FSimpleMulticastDelegate::FDelegate::CreateUObject(this, &UCUTDeveloperSettings::OnExternalPropertySettingChanged));
 }
+UCUTDeveloperSettings::~UCUTDeveloperSettings()
+{
+	if (ViewToolsOnChangedDelegateHandle.IsValid())
+	{
+		FComViewTools::Get().RemoveOnChangedParametersDelegate(ViewToolsOnChangedDelegateHandle);
+		ViewToolsOnChangedDelegateHandle.Reset();
+	}
+}
+
 /** return "Project" or "Editor" */
 FName UCUTDeveloperSettings::GetContainerName() const 
 {
@@ -71,6 +84,11 @@ void UCUTDeveloperSettings::InitialzieCachedParameter()
 	COTPropertySearcherSearchPath = FString(TEXT("/Game/"));
 	COTPropertySearcherSearchName = FString();
 }
+void UCUTDeveloperSettings::PostInitProperties()
+{
+	Super::PostInitProperties();
+	OnPropertySettingChanged();
+}
 const UCUTDeveloperSettings* UCUTDeveloperSettings::Get()
 {
 	return GetDefault<UCUTDeveloperSettings>();
@@ -80,12 +98,53 @@ UCUTDeveloperSettings* UCUTDeveloperSettings::GetWritable()
 	return GetMutableDefault<UCUTDeveloperSettings>();
 }
 
+
+FDelegateHandle UCUTDeveloperSettings::AddOnChangedDelegate(FCUTOnChangedDeveloperSettings::FDelegate InDelegate)
+{
+	return OnChangedDelegate.Add(InDelegate);
+}
+
+void UCUTDeveloperSettings::RemoveOnChangedDelegate(FDelegateHandle InDelegateHandle)
+{
+	OnChangedDelegate.Remove(InDelegateHandle);
+}
+
 /** 値変更時のコールバック */
 void UCUTDeveloperSettings::OnPropertySettingChanged(UObject* Object, struct FPropertyChangedEvent& Property)
 {
-	SCVTMPCViewerWatch::OnChangedEditorSettings(this, Property);
-	SCVTVolumeRenderer::OnChangedEditorSettings(this, Property);
+	OnPropertySettingChanged();
+}
+void UCUTDeveloperSettings::OnPropertySettingChanged()
+{
+	bPropertyChange = true;
+	// runtime 側へ受け渡し
+	{
+		FComViewTools& ViewTools = FComViewTools::Get();
+		ViewTools.SetVolumeRendererLineThickness(CVTVolumeRendererLineThickness);
+		ViewTools.SetVolumeRendererOneShotDuration(CVTVolumeRendererOneShotDuration);
+		ViewTools.SetVolumeRendererRenderDistance(CVTVolumeRendererRenderDistance);
+		ViewTools.SetVolumeRendererSolidAlpha(CVTVolumeRendererSolidAlpha);
+	}
+	
+	OnChangedDelegate.Broadcast();
 
+	SaveConfig();
+	bPropertyChange = false;
+}
+
+void UCUTDeveloperSettings::OnExternalPropertySettingChanged()
+{
+	if (bPropertyChange)
+	{
+		return;
+	}
+	FComViewTools& ViewTools = FComViewTools::Get();
+	CVTVolumeRendererLineThickness = ViewTools.GetVolumeRendererLineThickness();
+	CVTVolumeRendererOneShotDuration = ViewTools.GetVolumeRendererOneShotDuration();
+	CVTVolumeRendererRenderDistance = ViewTools.GetVolumeRendererRenderDistance();
+	CVTVolumeRendererSolidAlpha = ViewTools.GetVolumeRendererSolidAlpha();
+
+	OnChangedDelegate.Broadcast();
 	SaveConfig();
 }
 

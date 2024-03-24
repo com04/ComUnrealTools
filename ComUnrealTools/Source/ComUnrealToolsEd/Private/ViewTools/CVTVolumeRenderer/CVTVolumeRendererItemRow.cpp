@@ -137,7 +137,7 @@ void SCVTVolumeRendererItemRow::OnMouseLeave(const FPointerEvent& MouseEvent)
 FReply SCVTVolumeRendererItemRow::ButtonDispAlwaysClicked()
 {
 	Item->SetAlways(!Item->IsAlways());
-	Item->OnAlwaysON(Item);
+	Item->OnChangedAlways(Item);
 	return FReply::Handled();
 }
 FReply SCVTVolumeRendererItemRow::ButtonDispOneShotClicked()

@@ -9,11 +9,12 @@
 #include "SlateFwd.h"
 #include "Styling/SlateTypes.h"
 #include "Widgets/SCompoundWidget.h"
-#include "Widgets/Views/STileView.h"
 
 
 class SButton;
+template<typename NumericType> class SSpinBox;
 class STableViewBase;
+template <typename ItemType> class STileView;
 class ITableRow;
 class UCUTDeveloperSettings;
 
@@ -43,11 +44,7 @@ public:
 
 	/** Destructor. */
 	~SCVTVolumeRenderer();
-
-	virtual void Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime) override;
 public:
-	/** エディタの環境設定での値変更時のコールバック */
-	static void OnChangedEditorSettings(UCUTDeveloperSettings* Settings, struct FPropertyChangedEvent& Property);
 	/** エディタ終了時の現在環境の保存 */
 	static void OnFinalizeEditorSettings(UCUTDeveloperSettings* Settings);
 
@@ -74,11 +71,9 @@ protected:
 	// -------- Result
 	
 	void AddItem(const FCVTVolumeRendererItemInfo& InInfo);
-	// アイテム一つの描画
-	void RenderItem(UWorld* InWorld, TSharedPtr<FCVTVolumeRendererItem> InItem, float InDuration);
 	
-	// AlwaysがONに設定された時のコールバック
-	void OnAlwaysON(TSharedPtr<FCVTVolumeRendererItem> Item);
+	// Always表示設定が切り替えされた時のコールバック
+	void OnChangedAlways(TSharedPtr<FCVTVolumeRendererItem> Item);
 	// OneShotが押された時のコールバック
 	void OnOneShot(TSharedPtr<FCVTVolumeRendererItem> Item);
 	// Removeが押された時のコールバック
@@ -88,16 +83,20 @@ protected:
 	static bool FindClassInItemInfos(const TArray<FCVTVolumeRendererItemInfo>& InItemInfos, TSubclassOf<AActor> InClass);
 private:
 	TSharedPtr<STileView<TSharedPtr<FCVTVolumeRendererItem>>> ItemTileView;
+	TSharedPtr<SSpinBox<float>> SpinBoxLineThickness;
+	TSharedPtr<SSpinBox<float>> SpinBoxOneShotDuration;
+	TSharedPtr<SSpinBox<float>> SpinBoxRenderDistance;
 	
-	// 現在選択中のクラス
+	/// 現在選択中のクラス
 	TSubclassOf<AActor> SelectedClass;
-	// 追加されたActorリスト
+	/// 追加されたActorリスト
 	TArray<TSharedPtr<FCVTVolumeRendererItem>> Items;
 	
-	// AlwaysがONになっているリスト
-	TArray<TSharedPtr<FCVTVolumeRendererItem>> RequestAlwaysItems;
-	// OneShotが押された～描画が走る前のリスト
-	TArray<TSharedPtr<FCVTVolumeRendererItem>> RequestOneShotItems;
+	/// 設定変更時のDelegateハンドル
+	FDelegateHandle OnChangedEditorSettingsHandle;
+
+	/// 外部で設定変更された際の更新処理中
+	bool bExternalOnChanged;
 	
 	// 線の太さ
 	CUT_DEVSETTINGS_FLOAT(LineThickness, CVTVolumeRendererLineThickness);
@@ -105,7 +104,7 @@ private:
 	CUT_DEVSETTINGS_FLOAT(OneShotDuration, CVTVolumeRendererOneShotDuration);
 	// 表示距離
 	CUT_DEVSETTINGS_FLOAT(RenderDistance, CVTVolumeRendererRenderDistance);
-	
+
 	static TArray<FCVTVolumeRendererItemInfo> ItemInfos;
 	static const TArray<FLinearColor> DefaultColorList;
 
