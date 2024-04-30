@@ -815,7 +815,7 @@ void SCMTParameterSearcher::FinishSearch()
 		case ESelectType::StaticSwitch:
 			if (GetCheckBoxStateOverrideOnly() == ECheckBoxState::Checked)
 			{
-				for (const FStaticSwitchParameter& ParameterValue : MaterialInstance->GetStaticParameters().EditorOnly.StaticSwitchParameters)
+				for (const FStaticSwitchParameter& ParameterValue : MaterialInstance->GetStaticParameters().GetRuntime().StaticSwitchParameters)
 				{
 					if (CheckMaterialParameterValueStaticSwitch(ParameterValue.ParameterInfo, ParameterValue.Value, ValueText))
 					{

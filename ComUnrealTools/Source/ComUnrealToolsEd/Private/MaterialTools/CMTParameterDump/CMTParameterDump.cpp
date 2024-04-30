@@ -254,8 +254,8 @@ FReply SCMTParameterDump::ButtonAssetCheckClicked()
 				}
 			}
 			const FStaticParameterSet& MaterialStaticParameter = MaterialInstance->GetStaticParameters();
-			StaticSwitchParameters.Reserve(MaterialStaticParameter.EditorOnly.StaticSwitchParameters.Num());
-			for (const FStaticSwitchParameter& ParameterValue : MaterialStaticParameter.EditorOnly.StaticSwitchParameters)
+			StaticSwitchParameters.Reserve(MaterialStaticParameter.GetRuntime().StaticSwitchParameters.Num());
+			for (const FStaticSwitchParameter& ParameterValue : MaterialStaticParameter.GetRuntime().StaticSwitchParameters)
 			{
 				if (ParameterValue.ExpressionGUID.IsValid())
 				{

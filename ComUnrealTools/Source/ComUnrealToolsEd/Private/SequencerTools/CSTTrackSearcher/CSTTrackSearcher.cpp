@@ -316,7 +316,7 @@ void SCSTTrackSearcher::FinishSearch()
 			}
 			
 			// トップに配置されたTrack
-			const TArray<UMovieSceneTrack*>& Tracks = MovieScene->GetMasterTracks();
+			const TArray<UMovieSceneTrack*>& Tracks = MovieScene->GetTracks();
 			for (UMovieSceneTrack* Track : Tracks)
 			{
 				SearchMovieSceneTrack(LevelSequence, MovieScene, Track, RootSearchResult, FString(), FinishFindGuids);
@@ -393,7 +393,7 @@ void SCSTTrackSearcher::SearchMovieSceneFolder(ULevelSequence* InLevelSequence, 
 	}
 	
 	// 子トラック
-	const TArray<UMovieSceneTrack*>& ChildTracks = InFolder->GetChildMasterTracks();
+	const TArray<UMovieSceneTrack*>& ChildTracks = InFolder->GetChildTracks();
 	for (UMovieSceneTrack* ChildTrack : ChildTracks)
 	{
 		SearchMovieSceneTrack(InLevelSequence, InMovieScene, ChildTrack, InParentResult, FolderParentName, OutFindGuids);
