@@ -385,8 +385,8 @@ void SCMTNodeSearcher::MatchTokensFromExpressions(
 {
 	for (auto InExpression : InExpressions)
 	{
-		auto Expression = &(*InExpression);
-		const FText NodeName = InFunctionGetName(Expression);
+		UMaterialExpression* Expression = &(*InExpression);
+		const FText NodeName = InFunctionGetName(InExpression);
 		FString NodeSearchString = NodeName.ToString();
 		
 		NodeSearchString = NodeSearchString.Replace(TEXT(" "), TEXT(""));
